@@ -14,6 +14,10 @@
             Password
             <input type="password" name="password">
         </label>
+        {% if error %}
+            <p>{{ error }}</p>
+        {% endif %}
             <input type="submit" value="Login">
     </form>
+    <input type="button" id="register" onclick="document.location='{{ url_for("register") }}'">
 {% endblock %}
