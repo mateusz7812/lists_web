@@ -1,0 +1,22 @@
+{% extends "main.html" %}
+
+{% block head %}
+    <title>List add</title>
+{% endblock %}
+
+{% block body %}
+    <form method="POST" action="{{ url_for("list_add") }}">
+        <label>
+            Name
+            <input type="text" name="name">
+        </label>
+        <label>
+            Content
+            <textarea name="content" cols="40" rows="5"></textarea>
+        </label>
+        {% if error %}
+            <p>{{ error }}</p>
+        {% endif %}
+            <input type="submit" value="Add">
+    </form>
+{% endblock %}

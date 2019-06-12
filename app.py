@@ -8,8 +8,8 @@ requester = Requester()
 
 
 def get_user_key():
-    if ["user_id", "user_key"] in request.cookies.keys():
-        user_id = request.cookies.get("user_id")
+    if "user_id" in request.cookies.keys() and "user_key" in request.cookies.keys():
+        user_id = int(request.cookies.get("user_id"))
         user_key = request.cookies.get("user_key")
         return user_id, user_key
     return None
@@ -32,13 +32,15 @@ def user_app():
 def register():
     if request.method == "POST":
         response = requester.make_request(
-            {"object": "user", "action": "reg",
-             "nick": request.form["nick"],
-             "login": request.form["login"],
-             "password": request.form["password"]})
-        if response["info"] == "user added":
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "nick": request.form["nick"],
+                        "login": request.form["login"],
+                        "password": request.form["password"]},
+             "action": "add"})
+        if response["status"] == "handled":
             return redirect(url_for("login"))
-        return render_template('register.html', info=response["info"])
+        return render_template('register.html', info=response["error"])
     return render_template('register.html')
 
 
@@ -48,17 +50,38 @@ def login():
         return redirect(url_for("index"))
 
     if request.method == "POST":
-        db_request = requester.make_request(
-            {"object": "user", "action": "login",
-             "login": request.form["login"],
-             "password": request.form["password"]})
-        if db_request["info"] == "session added":
-            response = render_template("login.html")
-            response.set_cookie(bytes('user_id', "utf-8"), bytes(str(db_request["user_id"]), "utf-8"))
-            response.set_cookie('user_key', db_request["user_key"])
+        login = request.form["login"]
+        password = request.form["password"]
+        get_user_request = requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "login": login,
+                        "password": password},
+             "action": "get"})
+        user_id = get_user_request["objects"][0]["id"]
+
+        add_session_request = requester.make_request(
+            {"account": {"type": "account",
+                         "login": login,
+                         "password": password},
+             "object": {"type": "session", "user_id": user_id},
+             "action": "add"})
+
+        if add_session_request["status"] == "handled":
+            get_session_request = requester.make_request(
+                {"account": {"type": "account",
+                             "login": login,
+                             "password": password},
+                 "object": {"type": "session", "user_id": user_id},
+                 "action": "get"})
+            user_key = get_session_request["objects"][0]["key"]
+
+            response = make_response(redirect("/"))
+            response.set_cookie('user_id', str(user_id))
+            response.set_cookie('user_key', user_key)
             return response
         else:
-            return render_template("login.html", error=db_request["info"])
+            return render_template("login.html", error=add_session_request["error"])
 
     return render_template("login.html")
 
@@ -69,14 +92,37 @@ def lists_menu():
     if keys:
         user_id, user_key = keys
         db_request = requester.make_request(
-            {"object": "list", "action": "get",
-             "user_id": user_id, "user_key": user_key})
-        if db_request["info"] == "lists gotten":
-            return render_template("lists_menu.html", lists=db_request["lists"])
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "list",
+                        "user_id": user_id},
+             "action": "get"})
+        if db_request["status"] == "handled":
+            return render_template("lists_menu.html", lists=db_request["objects"])
         else:
-            return render_template("lists_menu.html", error=db_request["info"])
+            return render_template("lists_menu.html", error=db_request["error"])
     else:
         return redirect(url_for("index"))
 
 
-
+@app.route("/list/add", methods=["GET", "POST"])
+def list_add():
+    keys = get_user_key()
+    if keys:
+        if request.method == "POST":
+            user_id, user_key = keys
+            db_request = requester.make_request(
+                {"account": {"type": "session",
+                             "user_id": user_id, "key": user_key},
+                 "object": {"type": "list",
+                            "user_id": user_id,
+                            "name": request.form["name"],
+                            "content": request.form["content"]},
+                 "action": "add"})
+            if db_request["status"] == "handled":
+                return redirect(url_for("lists_menu"))
+            else:
+                return render_template("lists_add.html", error=db_request["error"])
+        return render_template("lists_add.html")
+    else:
+        return redirect(url_for("index"))

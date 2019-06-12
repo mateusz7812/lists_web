@@ -4,8 +4,8 @@
     <title>Lists menu</title>
 {% endblock %}
 
-{% block content %}
-    <input type="button" id="add_list_btn" content="Add list">
+{% block body %}
+    <input type="button" id="add_list_btn" content="Add list" onclick="document.location='{{ url_for("list_add") }}'"/>
     {% for list in lists %}
         <div class="list">
             <p>{{ list["name"] }}</p>
