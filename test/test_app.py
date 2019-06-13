@@ -108,8 +108,7 @@ class LoginTest(TestCase):
         requester.make_request(
             {"account": {"type": "admin", "login": "admin", "password": "admin"},
              "object": {"type": "list",
-                        "user_id": user_id,
-                        "name": "test"},
+                        "user_id": user_id},
              "action": "del"})
 
         requester.make_request(
@@ -228,6 +227,7 @@ class LoginTest(TestCase):
         list_id = response["objects"][0]["id"]
 
         self.browser.get("http://localhost:5000")
+        self.browser.delete_all_cookies()
 
         self.browser.add_cookie({"name": "user_id", "value": str(user_id)})
         self.browser.add_cookie({"name": 'user_key', "value": user_key})

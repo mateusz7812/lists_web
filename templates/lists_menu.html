@@ -7,7 +7,7 @@
 {% block body %}
     <input type="button" id="add_list_btn" content="Add list" onclick="document.location='{{ url_for("list_add") }}'"/>
     {% for list in lists %}
-        <div class="list">
+        <div class="list" onclick="document.location='{{ url_for("list", list_id = list["id"]) }}'">
             <p>{{ list["name"] }}</p>
             {{ list["content"] }}
         </div>

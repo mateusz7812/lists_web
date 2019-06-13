@@ -1,0 +1,12 @@
+{% extends "main.html" %}
+
+{% block head %}
+    <title>List {{ list["id"] }}</title>
+{% endblock %}
+
+{% block body %}
+    <div class="list">
+        <h1 id="list_name">{{ list["name"] }}</h1>
+        <p id="list_content">{{ list["content"] }}</p>
+    </div>
+{% endblock %}

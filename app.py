@@ -126,3 +126,20 @@ def list_add():
         return render_template("lists_add.html")
     else:
         return redirect(url_for("index"))
+
+
+@app.route("/list/<list_id>")
+def list(list_id):
+    keys = get_user_key()
+    if keys:
+        user_id, user_key = keys
+        db_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "list",
+                        "id": int(list_id)},
+             "action": "get"})
+        the_list = db_request["objects"][0]
+        return render_template("list.html", list=the_list)
+    else:
+        return redirect(url_for("index"))

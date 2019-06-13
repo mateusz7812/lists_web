@@ -125,6 +125,7 @@ class TestWeb(TestCase):
 
         lists[0].click()
 
+        current_url = self.browser.current_url
         self.assertRegex(current_url, '/list/'+str(list_id))
 
         # deleting list
