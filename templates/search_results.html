@@ -1,0 +1,19 @@
+{% extends "main.html" %}
+
+{% block head %}
+    <title>Search {{ query }}</title>
+{% endblock %}
+
+{% block body %}
+    {% for result in results %}
+        <div class="result" onclick="document.location='{{ result["url"] }}'">
+            {% if result["type"] == "user" %}
+                <h5 id="user_nick">{{ result["nick"] }}</h5>
+            {% elif result["type"] == "list" %}
+                <h5 id="list_name">{{ result["name"] }}</h5>
+                <p id="list_content">{{ result["content"] }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <input type="button" id="back_btn" value="Back" onclick="document.location='{{ url_for("lists_menu") }}'"/>
+{% endblock %}

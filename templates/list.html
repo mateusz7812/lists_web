@@ -9,4 +9,11 @@
         <h1 id="list_name">{{ list["name"] }}</h1>
         <p id="list_content">{{ list["content"] }}</p>
     </div>
+    <form style="border: 1px solid red" method="POST" action="{{ url_for("list_del") }}">
+        <p style="color:red;">List delete</p>
+        <label>List name:<input type="text" name="name"/></label>
+        <input type="hidden" required name="id" value="{{ list["id"] }}" />
+        <input type="submit" id="del_list_btn" value="Delete list" />
+    </form>
+    <input type="button" id="back_btn" value="Back" onclick="document.location='{{ url_for("lists_menu") }}'"/>
 {% endblock %}

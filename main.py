@@ -12,6 +12,9 @@ def run():
 
 
 def _run():
+    app.secret_key = 'super secret key'
+    app.config['SESSION_TYPE'] = 'filesystem'
+
     app.run()
 
 

@@ -1,0 +1,8 @@
+<div>
+    {% if session["logged"] %}
+        <input type="button" id="log_out_btn" value="Log out" onclick="document.location='{{ url_for("logout") }}'"/>
+        <form method="GET" action="{{ url_for("search")}}">
+            <input type="search" id="search_bar" name="query" placeholder="search"/>
+        </form>
+    {% endif %}
+</div>

@@ -18,9 +18,9 @@ class TestWeb(TestCase):
 
     def tearDown(self):
         main.terminate()
-        # self.browser.quit()
+        self.browser.quit()
 
-    def test_sequence(self):
+    def test_basic_sequence(self):
         requester.make_request(
             {"account": {"type": "admin", "login": "admin", "password": "admin"},
              "object": {"type": "account",
@@ -126,9 +126,12 @@ class TestWeb(TestCase):
         lists[0].click()
 
         current_url = self.browser.current_url
-        self.assertRegex(current_url, '/list/'+str(list_id))
+        self.assertRegex(current_url, '/list/' + str(list_id))
 
         # deleting list
+
+        name_input_box = self.browser.find_element_by_name('name')
+        name_input_box.send_keys("name")
 
         button = self.browser.find_element_by_id('del_list_btn')
         button.click()
@@ -148,3 +151,76 @@ class TestWeb(TestCase):
 
         current_url = self.browser.current_url
         self.assertRegex(current_url, '/user')
+
+    def test_followers_sequence(self):
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "account",
+                        "login": "test"},
+             "action": "del"})
+
+        requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "nick": "test",
+                        "login": "test",
+                        "password": "test"},
+             "action": "add"})
+
+        requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "nick": "other1",
+                        "login": "other1",
+                        "password": "other1"},
+             "action": "add"})
+
+        response = requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "login": "other1",
+                        "password": "other1"},
+             "action": "get"})
+
+        other1_id = response["objects"][0]["id"]
+
+        requester.make_request(
+            {"account": {"type": "account",
+                         "login": "test",
+                         "password": "test"},
+             "object": {"type": "list",
+                        "user_id": other1_id,
+                        "name": "other2",
+                        "content": "other2"},
+             "action": "add"})
+
+        self.browser.get("http://localhost:5000")
+
+        login_input_box = self.browser.find_element_by_name('login')
+        password_input_box = self.browser.find_element_by_name('password')
+
+        login_input_box.send_keys('test')
+        password_input_box.send_keys('test')
+        password_input_box.send_keys(Keys.ENTER)
+
+        time.sleep(4)
+
+        search_bar = self.browser.find_element_by_id("search_bar")
+        search_bar.send_keys("other1")
+        search_bar.send_keys(Keys.ENTER)
+
+        time.sleep(3)
+
+        current_url = self.browser.current_url
+        self.assertEqual(current_url[-20:], '/search?query=other1')
+
+        results = self.browser.find_elements_by_class_name("result")
+        results[0].click()
+
+        current_url = self.browser.current_url
+        self.assertRegex(current_url, '/user/' + str(other1_id))
+
+        follow_btn = self.browser.find_element_by_id("follow_btn")
+        follow_btn.click()
+
+

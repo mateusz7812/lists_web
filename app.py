@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, make_response
+from flask import Flask, render_template, request, url_for, redirect, make_response, session
 
 from requester import Requester
 
@@ -11,7 +11,9 @@ def get_user_key():
     if "user_id" in request.cookies.keys() and "user_key" in request.cookies.keys():
         user_id = int(request.cookies.get("user_id"))
         user_key = request.cookies.get("user_key")
+        session['logged'] = True
         return user_id, user_key
+    session['logged'] = False
     return None
 
 
@@ -24,12 +26,43 @@ def index():
 
 
 @app.route("/user")
-def user_app():
-    return render_template("user.html")
+def user_home():
+    keys = get_user_key()
+    if keys:
+        user_id, user_key = keys
+        db_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "account",
+                        "id": id},
+             "action": "get"})
+        return render_template("user_home.html", user=db_request["objects"][0])
+    else:
+        return redirect(url_for("index"))
+
+
+@app.route("/user/<id>")
+def user(id):
+    keys = get_user_key()
+    if keys:
+        user_id, user_key = keys
+        if int(id) == user_id:
+            return redirect("user_home")
+        db_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "account",
+                        "id": int(id)},
+             "action": "get"})
+        return render_template("user.html", user=db_request["objects"][0])
+    else:
+        return redirect(url_for("index"))
 
 
 @app.route("/user/register", methods=["GET", "POST"])
 def register():
+    if get_user_key():
+        return redirect(url_for("index"))
     if request.method == "POST":
         response = requester.make_request(
             {"account": {"type": "anonymous"},
@@ -84,6 +117,16 @@ def login():
             return render_template("login.html", error=add_session_request["error"])
 
     return render_template("login.html")
+
+
+@app.route("/user/logout")
+def logout():
+    keys = get_user_key()
+    response = make_response(redirect(url_for("index")))
+    if keys:
+        response.set_cookie('user_id', '', expires=0)
+        response.set_cookie('user_key', '', expires=0)
+    return response
 
 
 @app.route("/list")
@@ -141,5 +184,43 @@ def list(list_id):
              "action": "get"})
         the_list = db_request["objects"][0]
         return render_template("list.html", list=the_list)
+    else:
+        return redirect(url_for("index"))
+
+
+@app.route("/list/del")
+def list_del():
+    keys = get_user_key()
+    if keys and request.method == "POST":
+        user_id, user_key = keys
+        requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "list",
+                        "id": int(request.form["id"]),
+                        "user_id": user_id,
+                        "name": request.form["name"]},
+             "action": "del"})
+    return redirect(url_for("index"))
+
+
+@app.route('/search')
+def search():
+    results = []
+    keys = get_user_key()
+    if keys:
+        user_id, user_key = keys
+        response = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id,
+                         "key": user_key},
+             "object": {"type": "account",
+                        "nick": request.args.get("query")},
+             "action": "get"})
+        for result in response["objects"]:
+            result["type"] = "user"
+            result["url"] = url_for("user", id=result["id"])
+            results.append(result)
+        return render_template("search_results.html", results=results, query=request.args.get('query'))
     else:
         return redirect(url_for("index"))
