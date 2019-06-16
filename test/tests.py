@@ -167,6 +167,15 @@ class TestWeb(TestCase):
                         "password": "test"},
              "action": "add"})
 
+        response = requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "login": "test",
+                        "password": "test"},
+             "action": "get"})
+
+        test_id = response["objects"][0]["id"]
+
         requester.make_request(
             {"account": {"type": "anonymous"},
              "object": {"type": "account",
@@ -188,11 +197,10 @@ class TestWeb(TestCase):
             {"account": {"type": "account",
                          "login": "test",
                          "password": "test"},
-             "object": {"type": "list",
-                        "user_id": other1_id,
-                        "name": "other2",
-                        "content": "other2"},
-             "action": "add"})
+             "object": {"type": "follow",
+                        "followed": other1_id,
+                        "follower": test_id},
+             "action": "del"})
 
         self.browser.get("http://localhost:5000")
 
@@ -223,4 +231,37 @@ class TestWeb(TestCase):
         follow_btn = self.browser.find_element_by_id("follow_btn")
         follow_btn.click()
 
+        time.sleep(3)
 
+        response = requester.make_request(
+            {"account": {"type": "account",
+                         "login": "test",
+                         "password": "test"},
+             "object": {"type": "follow",
+                        "followed": other1_id,
+                        "follower": test_id},
+             "action": "get"})
+
+        self.assertEqual(1, len(response["objects"]))
+
+        follow_btns = self.browser.find_elements_by_id("follow_btn")
+        self.assertEqual(0, len(follow_btns))
+
+        follow_labels = self.browser.find_elements_by_id("follow_label")
+        self.assertEqual(1, len(follow_labels))
+
+        unfollow_btn = self.browser.find_element_by_id("unfollow_btn")
+        unfollow_btn.click()
+
+        time.sleep(3)
+
+        response = requester.make_request(
+            {"account": {"type": "account",
+                         "login": "test",
+                         "password": "test"},
+             "object": {"type": "follow",
+                        "followed": other1_id,
+                        "follower": test_id},
+             "action": "get"})
+
+        self.assertEqual(0, len(response["objects"]))

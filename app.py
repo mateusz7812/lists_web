@@ -48,13 +48,29 @@ def user(id):
         user_id, user_key = keys
         if int(id) == user_id:
             return redirect("user_home")
+
         db_request = requester.make_request(
             {"account": {"type": "session",
                          "user_id": user_id, "key": user_key},
              "object": {"type": "account",
                         "id": int(id)},
              "action": "get"})
-        return render_template("user.html", user=db_request["objects"][0])
+
+        user = db_request["objects"][0]
+
+        db_request = requester.make_request(
+            {"account": {"type": "account",
+                         "login": "test",
+                         "password": "test"},
+             "object": {"type": "follow",
+                        "followed": user["id"],
+                        "follower": user_id},
+             "action": "get"})
+
+        if len(db_request["objects"]):
+            user["followed"] = True
+
+        return render_template("user.html", user=user)
     else:
         return redirect(url_for("index"))
 
@@ -224,3 +240,35 @@ def search():
         return render_template("search_results.html", results=results, query=request.args.get('query'))
     else:
         return redirect(url_for("index"))
+
+
+@app.route('/follow/<id>')
+def follow(id):
+    keys = get_user_key()
+    if keys:
+        user_id, user_key = keys
+        response = requester.make_request(
+            {"account": {"type": "account",
+                         "login": "test",
+                         "password": "test"},
+             "object": {"type": "follow",
+                        "followed": int(id),
+                        "follower": user_id},
+             "action": "add"})
+        return response["status"]
+
+
+@app.route('/unfollow/<id>')
+def unfollow(id):
+    keys = get_user_key()
+    if keys:
+        user_id, user_key = keys
+        response = requester.make_request(
+            {"account": {"type": "account",
+                         "login": "test",
+                         "password": "test"},
+             "object": {"type": "follow",
+                        "followed": int(id),
+                        "follower": user_id},
+             "action": "del"})
+        return response["status"]

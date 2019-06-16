@@ -1,11 +1,43 @@
 {% extends "main.html" %}
 
 {% block head %}
+    <title>{{ user["nick"] }}</title>
 
 {% endblock %}
 
-
 {% block body %}
+    <h1>{{ user["nick"] }}</h1>
+    {% if user["followed"] %}
+        <p id="follow_label">Followed</p>
+        <input type="button" id="unfollow_btn" value="Unfollow" onclick="unfollow()"/>
+        <script>
+            function unfollow() {
+                const xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        document.location.reload();
+                    }
+                };
+                xhttp.open("GET", "{{ url_for("unfollow", id=user["id"]) }}", true);
+                xhttp.send();
+            }
+        </script>
+    {% else %}
+        <input type="button" id="follow_btn" value="Follow" onclick="follow()"/>
+        <script>
+            function follow() {
+                const xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        document.location.reload();
+                    }
+                };
+                xhttp.open("GET", "{{ url_for("follow", id=user["id"]) }}", true);
+                xhttp.send();
+            }
+        </script>
+    {% endif %}
+    <input type="button" id="back_btn" value="Back" onclick="document.location='{{ url_for("lists_menu") }}'"/>
 
 {% endblock %}
 
