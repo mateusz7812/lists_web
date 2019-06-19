@@ -82,8 +82,8 @@ class LoginTest(TestCase):
 
         self.browser.get("http://localhost:5000/user/logout")
 
-        self.assertEqual(None, int(self.browser.get_cookie("user_id")["value"]))
-        self.assertEqual(None, self.browser.get_cookie("user_key")["value"])
+        self.assertEqual(None, self.browser.get_cookie("user_id"))
+        self.assertEqual(None, self.browser.get_cookie("user_key"))
 
     def test_list_adding(self):
         requester.make_request(
@@ -258,6 +258,8 @@ class LoginTest(TestCase):
                         "user_id": user_id},
              "action": "get"})
 
+        time.sleep(2)
+
         self.assertEqual(0, len(response["objects"]))
 
     def test_log_out_btn(self):
@@ -268,8 +270,49 @@ class LoginTest(TestCase):
 
         self.assertEqual(0, len(self.browser.find_elements_by_id('log_out_btn')))
 
-        self.browser.add_cookie({"name": "user_id", "value": "10"})
-        self.browser.add_cookie({"name": 'user_key', "value": "sadsadsadsasd23131cczx"})
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "account",
+                        "login": "other1"},
+             "action": "del"})
+
+        requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "nick": "other1",
+                        "login": "other1",
+                        "password": "other1"},
+             "action": "add"})
+
+        response = requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "login": "other1",
+                        "password": "other1"},
+             "action": "get"})
+
+        user_id = response["objects"][0]["id"]
+
+        requester.make_request(
+            {"account": {"type": "account",
+                         "login": "other1",
+                         "password": "other1"},
+             "object": {"type": "session",
+                        "user_id": user_id},
+             "action": "add"})
+
+        response = requester.make_request(
+            {"account": {"type": "account",
+                         "login": "other1",
+                         "password": "other1"},
+             "object": {"type": "session",
+                        "user_id": user_id},
+             "action": "get"})
+
+        user_key = response["objects"][0]["key"]
+
+        self.browser.add_cookie({"name": "user_id", "value": str(user_id)})
+        self.browser.add_cookie({"name": 'user_key', "value": user_key})
 
         self.browser.get("http://localhost:5000/list")
 
@@ -323,6 +366,12 @@ class LoginTest(TestCase):
         other2_id = response["objects"][0]["id"]
 
         requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "list",
+                        "name": "other3"},
+             "action": "del"})
+
+        requester.make_request(
             {"account": {"type": "account",
                          "login": "other1",
                          "password": "other1"},
@@ -331,6 +380,18 @@ class LoginTest(TestCase):
                         "name": "other3",
                         "content": "other3"},
              "action": "add"})
+
+        response = requester.make_request(
+            {"account": {"type": "account",
+                         "login": "other1",
+                         "password": "other1"},
+             "object": {"type": "list",
+                        "user_id": other1_id,
+                        "name": "other3",
+                        "content": "other3"},
+             "action": "get"})
+
+        other3_id = response["objects"][0]["id"]
 
         requester.make_request(
             {"account": {"type": "account",
@@ -366,3 +427,12 @@ class LoginTest(TestCase):
         current_url = self.browser.current_url
         self.assertRegex(current_url, '/user/' + str(other2_id))
 
+        self.browser.get("http://localhost:5000/search?query=other3")
+
+        time.sleep(2)
+
+        results = self.browser.find_elements_by_class_name("result")
+        results[0].click()
+
+        current_url = self.browser.current_url
+        self.assertRegex(current_url, '/list/' + str(other3_id))

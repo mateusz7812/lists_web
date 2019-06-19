@@ -1,0 +1,10 @@
+.unit{
+    width: 75%;
+    margin: 10px 10% 10px 15%;
+}
+
+.unit_header{
+    width: 100%;
+    height: 30px;
+    background-color: gray;
+}

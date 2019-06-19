@@ -2,14 +2,19 @@
 
 {% block head %}
     <title>Lists menu</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/lists_menu.css"/>
 {% endblock %}
 
 {% block body %}
-    <input type="button" id="add_list_btn" value="Add list" onclick="document.location='{{ url_for("list_add") }}'"/>
-    {% for list in lists %}
-        <div class="list" onclick="document.location='{{ url_for("list", list_id = list["id"]) }}'">
-            <p>{{ list["name"] }}</p>
-            {{ list["content"] }}
+    {% for unit in units %}
+        <div class="unit">
+            <div class="unit_header">{{ unit["name"] }}</div>
+            {% for list in unit["lists"] %}
+                <div class="list" onclick="document.location='{{ url_for("list", list_id = list["id"]) }}'">
+                    <p>{{ list["name"] }}</p>
+                    {{ list["content"] }}
+                </div>
+            {% endfor %}
         </div>
     {% endfor %}
 {% endblock %}

@@ -7,19 +7,38 @@ app = Flask(__name__)
 requester = Requester()
 
 
-def get_user_key():
+def add_user_to_session(user_id, user_key):
+    db_request = requester.make_request(
+        {"account": {"type": "session",
+                     "user_id": user_id, "key": user_key},
+         "object": {"type": "account",
+                    "id": user_id},
+         "action": "get"})
+
+    user = db_request["objects"]
+    if user:
+        session["user"] = user[0]
+    return user
+
+
+def check_session():
     if "user_id" in request.cookies.keys() and "user_key" in request.cookies.keys():
         user_id = int(request.cookies.get("user_id"))
         user_key = request.cookies.get("user_key")
         session['logged'] = True
+        if "user" not in session.keys():
+            if not add_user_to_session(user_id, user_key):
+                return None
         return user_id, user_key
     session['logged'] = False
+    if 'user' in session.keys():
+        session.pop('user')
     return None
 
 
 @app.route("/")
 def index():
-    if get_user_key():
+    if check_session():
         return redirect(url_for("lists_menu"))
     else:
         return redirect(url_for("login"))
@@ -27,23 +46,31 @@ def index():
 
 @app.route("/user")
 def user_home():
-    keys = get_user_key()
+    keys = check_session()
     if keys:
         user_id, user_key = keys
         db_request = requester.make_request(
             {"account": {"type": "session",
                          "user_id": user_id, "key": user_key},
              "object": {"type": "account",
-                        "id": id},
+                        "id": user_id},
              "action": "get"})
-        return render_template("user_home.html", user=db_request["objects"][0])
+        user = db_request["objects"][0]
+        db_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "list",
+                        "user_id": user_id},
+             "action": "get"})
+        lists = db_request["objects"]
+        return render_template("user_home.html", user=user, lists=lists)
     else:
         return redirect(url_for("index"))
 
 
 @app.route("/user/<id>")
 def user(id):
-    keys = get_user_key()
+    keys = check_session()
     if keys:
         user_id, user_key = keys
         if int(id) == user_id:
@@ -77,7 +104,7 @@ def user(id):
 
 @app.route("/user/register", methods=["GET", "POST"])
 def register():
-    if get_user_key():
+    if check_session():
         return redirect(url_for("index"))
     if request.method == "POST":
         response = requester.make_request(
@@ -95,7 +122,7 @@ def register():
 
 @app.route("/user/login", methods=["GET", "POST"])
 def login():
-    if get_user_key():
+    if check_session():
         return redirect(url_for("index"))
 
     if request.method == "POST":
@@ -137,7 +164,7 @@ def login():
 
 @app.route("/user/logout")
 def logout():
-    keys = get_user_key()
+    keys = check_session()
     response = make_response(redirect(url_for("index")))
     if keys:
         response.set_cookie('user_id', '', expires=0)
@@ -147,7 +174,7 @@ def logout():
 
 @app.route("/list")
 def lists_menu():
-    keys = get_user_key()
+    keys = check_session()
     if keys:
         user_id, user_key = keys
         db_request = requester.make_request(
@@ -157,7 +184,7 @@ def lists_menu():
                         "user_id": user_id},
              "action": "get"})
         if db_request["status"] == "handled":
-            return render_template("lists_menu.html", lists=db_request["objects"])
+            return render_template("lists_menu.html", units=[{"name": "basic", "lists": db_request["objects"]}])
         else:
             return render_template("lists_menu.html", error=db_request["error"])
     else:
@@ -166,7 +193,7 @@ def lists_menu():
 
 @app.route("/list/add", methods=["GET", "POST"])
 def list_add():
-    keys = get_user_key()
+    keys = check_session()
     if keys:
         if request.method == "POST":
             user_id, user_key = keys
@@ -189,7 +216,7 @@ def list_add():
 
 @app.route("/list/<list_id>")
 def list(list_id):
-    keys = get_user_key()
+    keys = check_session()
     if keys:
         user_id, user_key = keys
         db_request = requester.make_request(
@@ -204,9 +231,9 @@ def list(list_id):
         return redirect(url_for("index"))
 
 
-@app.route("/list/del")
+@app.route("/list/del", methods=["POST"])
 def list_del():
-    keys = get_user_key()
+    keys = check_session()
     if keys and request.method == "POST":
         user_id, user_key = keys
         requester.make_request(
@@ -223,7 +250,7 @@ def list_del():
 @app.route('/search')
 def search():
     results = []
-    keys = get_user_key()
+    keys = check_session()
     if keys:
         user_id, user_key = keys
         response = requester.make_request(
@@ -237,6 +264,19 @@ def search():
             result["type"] = "user"
             result["url"] = url_for("user", id=result["id"])
             results.append(result)
+
+        response = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id,
+                         "key": user_key},
+             "object": {"type": "list",
+                        "name": request.args.get("query")},
+             "action": "get"})
+        for result in response["objects"]:
+            result["type"] = "list"
+            result["url"] = url_for("list", list_id=result["id"])
+            results.append(result)
+
         return render_template("search_results.html", results=results, query=request.args.get('query'))
     else:
         return redirect(url_for("index"))
@@ -244,7 +284,7 @@ def search():
 
 @app.route('/follow/<id>')
 def follow(id):
-    keys = get_user_key()
+    keys = check_session()
     if keys:
         user_id, user_key = keys
         response = requester.make_request(
@@ -260,7 +300,7 @@ def follow(id):
 
 @app.route('/unfollow/<id>')
 def unfollow(id):
-    keys = get_user_key()
+    keys = check_session()
     if keys:
         user_id, user_key = keys
         response = requester.make_request(

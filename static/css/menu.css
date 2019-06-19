@@ -1,0 +1,23 @@
+.menu_div{
+    width: 80px;
+    height: 80px;
+    float: left;
+    background-color: gray;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    margin: 10px;
+    cursor: pointer;
+}
+
+#menu{
+    margin-left: 20px;
+    position: fixed;
+    width: 30px;
+    top: 50%;
+    transform: translate(0, -50%)
+}
+
+#search_bar{
+    display: none;
+}

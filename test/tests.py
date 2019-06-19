@@ -45,10 +45,12 @@ class TestWeb(TestCase):
         nick_input_box = self.browser.find_element_by_name('nick')
         login_input_box = self.browser.find_element_by_name('login')
         password_input_box = self.browser.find_element_by_name('password')
+        email_input_box = self.browser.find_element_by_name('email')
 
         nick_input_box.send_keys('test')
         login_input_box.send_keys('test')
         password_input_box.send_keys('test')
+        email_input_box.send_keys('email@gmail.com')
         password_input_box.send_keys(Keys.ENTER)
 
         # login page

@@ -7,6 +7,7 @@
 {% block body %}
     {% for result in results %}
         <div class="result" onclick="document.location='{{ result["url"] }}'">
+            <p>{{ result["type"] }}</p>
             {% if result["type"] == "user" %}
                 <h5 id="user_nick">{{ result["nick"] }}</h5>
             {% elif result["type"] == "list" %}
