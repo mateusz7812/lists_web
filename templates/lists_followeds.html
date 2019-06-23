@@ -1,0 +1,19 @@
+{% extends "main.html" %}
+
+{% block head %}
+    <title>Followed`s lists</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/lists_followeds.css"/>
+{% endblock %}
+
+{% block body %}
+    <h3>Followed`s</h3>
+    <div id="site-2">
+        {% for list in lists %}
+            <div class="list" onclick="document.location='{{ url_for("one_list", list_id = list["id"]) }}'">
+                <p>{{ list["author"] }} - {{ list["name"] }}</p>
+                <p>{{ list["content"] }}</p>
+                <p>{{ list["date"] }}</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

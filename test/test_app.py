@@ -241,9 +241,9 @@ class LoginTest(TestCase):
         list_name_field = self.browser.find_element_by_id('list_name')
         list_content_field = self.browser.find_element_by_id('list_content')
 
-        self.assertEqual("test", list_name_field.text)
+        self.assertEqual("test - test", list_name_field.text)
         self.assertEqual("test", list_content_field.text)
-
+        self.browser.find_element_by_id('del_form_shower').click()
         list_name_field = self.browser.find_element_by_name('name')
         list_name_field.send_keys("test")
 
@@ -316,7 +316,7 @@ class LoginTest(TestCase):
 
         self.browser.get("http://localhost:5000/list")
 
-        self.assertEqual(1, len(self.browser.find_elements_by_id('log_out_btn')))
+        self.assertEqual(1, len(self.browser.find_elements_by_id('log_out_div')))
 
     def test_search_results(self):
         requester.make_request(
@@ -436,3 +436,182 @@ class LoginTest(TestCase):
 
         current_url = self.browser.current_url
         self.assertRegex(current_url, '/list/' + str(other3_id))
+
+    def test_followeds_lists(self):
+        # del old accounts
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "account",
+                        "login": "test"},
+             "action": "del"})
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "account",
+                        "login": "other1"},
+             "action": "del"})
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "account",
+                        "login": "other2"},
+             "action": "del"})
+
+        # del old lists
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "list",
+                        "name": "other1_list"},
+             "action": "del"})
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "list",
+                        "name": "other2_list"},
+             "action": "del"})
+
+        # add accounts
+        requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "nick": "other1",
+                        "login": "other1",
+                        "password": "other1"},
+             "action": "add"})
+
+        response = requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "login": "other1",
+                        "password": "other1"},
+             "action": "get"})
+
+        other1_id = response["objects"][0]["id"]
+
+        requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "nick": "other2",
+                        "login": "other2",
+                        "password": "other2"},
+             "action": "add"})
+
+        response = requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "login": "other2",
+                        "password": "other2"},
+             "action": "get"})
+
+        other2_id = response["objects"][0]["id"]
+
+        requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "nick": "test",
+                        "login": "test",
+                        "password": "test"},
+             "action": "add"})
+
+        response = requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "login": "test",
+                        "password": "test"},
+             "action": "get"})
+
+        test_id = response["objects"][0]["id"]
+
+        # add lists
+
+        requester.make_request(
+            {"account": {"type": "account",
+                         "login": "other1",
+                         "password": "other1"},
+             "object": {"type": "list",
+                        "user_id": other1_id,
+                        "name": "other1_list",
+                        "content": "other_other_other_other_other_other_other"},
+             "action": "add"})
+
+        requester.make_request(
+            {"account": {"type": "account",
+                         "login": "other2",
+                         "password": "other2"},
+             "object": {"type": "list",
+                        "user_id": other2_id,
+                        "name": "other2_list",
+                        "content": "other_other_other_other_other_other_other"},
+             "action": "add"})
+
+        # del old follows
+
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "follow",
+                        "follower": test_id},
+             "action": "del"})
+
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "follow",
+                        "followed": other1_id},
+             "action": "del"})
+
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "follow",
+                        "followed": other2_id},
+             "action": "del"})
+
+        # set following
+
+        requester.make_request(
+            {"account": {"type": "account",
+                         "login": "test",
+                         "password": "test"},
+             "object": {"type": "follow",
+                        "followed": other1_id,
+                        "follower": test_id},
+             "action": "add"})
+
+        requester.make_request(
+            {"account": {"type": "account",
+                         "login": "test",
+                         "password": "test"},
+             "object": {"type": "follow",
+                        "followed": other2_id,
+                        "follower": test_id},
+             "action": "add"})
+
+        # login test user
+
+        requester.make_request(
+            {"account": {"type": "account",
+                         "login": "test",
+                         "password": "test"},
+             "object": {"type": "session",
+                        "user_id": test_id},
+             "action": "add"})
+
+        response = requester.make_request(
+            {"account": {"type": "account",
+                         "login": "other1",
+                         "password": "other1"},
+             "object": {"type": "session",
+                        "user_id": test_id},
+             "action": "get"})
+
+        test_key = response["objects"][0]["key"]
+
+        self.browser.get("http://localhost:5000")
+        self.browser.delete_all_cookies()
+
+        self.browser.add_cookie({"name": "user_id", "value": str(test_id)})
+        self.browser.add_cookie({"name": 'user_key', "value": test_key})
+
+        # check results
+
+        self.browser.get("http://localhost:5000/list/followed")
+
+        results = self.browser.find_elements_by_class_name("list")
+        self.assertEqual("other1 - other1_list", results[0].find_elements_by_tag_name("p")[0].text)
+        self.assertEqual("other2 - other2_list", results[1].find_elements_by_tag_name("p")[0].text)
+

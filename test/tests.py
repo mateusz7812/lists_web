@@ -92,7 +92,7 @@ class TestWeb(TestCase):
         lists = self.browser.find_elements_by_class_name("list")
         self.assertEqual(0, len(lists))
 
-        button = self.browser.find_element_by_id('add_list_btn')
+        button = self.browser.find_element_by_id('add_list_div')
         button.click()
 
         # adding list
@@ -132,6 +132,7 @@ class TestWeb(TestCase):
 
         # deleting list
 
+        self.browser.find_element_by_id('del_form_shower').click()
         name_input_box = self.browser.find_element_by_name('name')
         name_input_box.send_keys("name")
 
@@ -148,7 +149,7 @@ class TestWeb(TestCase):
 
         # logging out user
 
-        button = self.browser.find_element_by_id('log_out_btn')
+        button = self.browser.find_element_by_id('log_out_div')
         button.click()
 
         current_url = self.browser.current_url
@@ -215,7 +216,10 @@ class TestWeb(TestCase):
 
         time.sleep(4)
 
+        self.browser.find_element_by_id("search_div").click()
+        self.browser.find_element_by_id("search_div").click()
         search_bar = self.browser.find_element_by_id("search_bar")
+
         search_bar.send_keys("other1")
         search_bar.send_keys(Keys.ENTER)
 

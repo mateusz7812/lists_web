@@ -2,8 +2,10 @@
 {% if session["logged"] %}
     <div id="menu">
         <div class="menu_div" id="search_div">
-            <span id="search_text">Search</span>
-            <form method="GET" action="{{ url_for("search")}}">
+            <div id="click_taker">
+                Search
+            </div>
+            <form method="GET" id="search_form" action="{{ url_for("search")}}">
                 <input type="search" id="search_bar" name="query" placeholder="search"/>
             </form>
         </div>
@@ -11,7 +13,7 @@
         <div class="menu_div" id="lists_menu_div" onclick="document.location='{{ url_for("lists_menu") }}'">All</div>
         <div class="menu_div" id="invites_div" onclick="document.location='#'">Invites</div>
         <div class="menu_div" id="upcoming_div" onclick="document.location='#'">Upcoming</div>
-        <div class="menu_div" id="followed_div" onclick="document.location='#'">Followed`s</div>
+        <div class="menu_div" id="followed_div" onclick="document.location='{{ url_for("followers_lists") }}'">Followed`s</div>
         <div class="menu_div" id="user_div" onclick="document.location='{{ url_for("user_home") }}'">{{ session["user"]["nick"] }}</div>
         <div class="menu_div" id="settings_div" onclick="document.location='#'">Settings</div>
         <div class="menu_div" id="log_out_div" onclick="document.location='{{ url_for("logout") }}'">Log out</div>
@@ -20,20 +22,21 @@
 
 <script>
     let status = 1;
-    let divWidth = document.getElementById('search_div').style.width;
-    document.getElementById('search_div').onclick = function () {
+    document.getElementById('click_taker').onclick = function () {
         if(status){
-            document.getElementById('search_div').style.width = '200px';
-            document.getElementById('search_text').style.display = 'none';
-            document.getElementById('search_bar').style.display = 'inline';
+            document.getElementById('search_form').style.height = '80px';
+            document.getElementById('search_form').style.width = '200px';
+            document.getElementById('search_div').style.width = "280px";
+            document.getElementById('search_bar').style.display = "inline-block";
+            document.getElementById('search_bar').focus();
             status = 0;
         }
         else{
-            document.getElementById('search_div').style.width = divWidth;
-            document.getElementById('search_text').style.display = 'inline';
-            document.getElementById('search_bar').style.display = 'none';
+            document.getElementById('search_form').style.height = '0';
+            document.getElementById('search_form').style.width = '0';
+            document.getElementById('search_div').style.width = "80px";
+            document.getElementById('search_bar').style.display = "none";
             status = 1;
         }
     };
-
 </script>

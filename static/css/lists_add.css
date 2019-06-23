@@ -1,0 +1,20 @@
+[class*="site"]{
+    text-align: left;
+    background-color: var(--main-bg-color);
+}
+
+[class*="site"]>form{
+    width: 100%;
+}
+
+[class*="site"] input[name="text"],
+[class*="site"] textarea{
+    width: 100%;
+}
+
+[class*="site"] input[type="submit"],
+[class*="site"] input[type="button"]{
+    width: 25%;
+    float: left;
+    margin: 15px 12.5% 0 12.5%;
+}

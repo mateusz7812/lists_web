@@ -1,0 +1,14 @@
+
+
+[id^=site-]>p{
+    width: 70%;
+    margin:20px 15%;
+    text-align: left;
+}
+
+[id^=site-]>p>span{
+    position: absolute;
+    left: 60%;
+    transform: translate(-50%, -25%);
+    font-size: 150%;
+}

@@ -4,7 +4,7 @@ import requests
 
 
 class Requester:
-    def __init__(self, addres: str = "http://localhost:8080"):
+    def __init__(self, addres: str = "http://localhost:7000"):
         self.addres = addres
 
     def make_request(self, data):

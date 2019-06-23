@@ -2,19 +2,25 @@
 
 {% block head %}
     <title>Search {{ query }}</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/search_results.css"/>
 {% endblock %}
 
 {% block body %}
-    {% for result in results %}
-        <div class="result" onclick="document.location='{{ result["url"] }}'">
-            <p>{{ result["type"] }}</p>
-            {% if result["type"] == "user" %}
-                <h5 id="user_nick">{{ result["nick"] }}</h5>
-            {% elif result["type"] == "list" %}
-                <h5 id="list_name">{{ result["name"] }}</h5>
-                <p id="list_content">{{ result["content"] }}</p>
-            {% endif %}
-        </div>
-    {% endfor %}
-    <input type="button" id="back_btn" value="Back" onclick="document.location='{{ url_for("lists_menu") }}'"/>
+    <div class="site-3">
+        <h2>Search {{ query }}</h2>
+        {% for result in results %}
+            <div class="result" onclick="document.location='{{ result["url"] }}'">
+                <p>{{ result["type"] }}</p>
+                {% if result["type"] == "user" %}
+                    <p>|</p>
+                    <p id="user_nick">{{ result["nick"] }}</p>
+                {% elif result["type"] == "list" %}
+                    <p>|</p>
+                    <p id="list_name">{{ result["name"] }}</p>
+                    <p>|</p>
+                    <p id="list_content">{{ result["content"] }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
 {% endblock %}

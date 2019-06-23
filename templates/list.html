@@ -1,19 +1,36 @@
 {% extends "main.html" %}
 
 {% block head %}
-    <title>List {{ list["id"] }}</title>
+    <title>{{ list["author"]["nick"] }} - {{ list["name"] }}</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/list.css"/>
 {% endblock %}
 
 {% block body %}
-    <div class="list">
-        <h1 id="list_name">{{ list["name"] }}</h1>
-        <p id="list_content">{{ list["content"] }}</p>
+    <div id="left">
+        <div class="list">
+            <h1 id="list_name">{{ list["author"]["nick"] }} - {{ list["name"] }}</h1>
+            <p id="list_content">{{ list["content"] }}</p>
+            <p id="list_date">{{ list["date"] }}</p>
+        </div>
     </div>
-    <form style="border: 1px solid red" method="POST" action="{{ url_for("list_del") }}">
-        <p style="color:red;">List delete</p>
-        <label>List name:<input type="text" name="name"/></label>
-        <input type="hidden" required name="id" value="{{ list["id"] }}" />
-        <input type="submit" id="del_list_btn" value="Delete list" />
-    </form>
-    <input type="button" id="back_btn" value="Back" onclick="document.location='{{ url_for("lists_menu") }}'"/>
+    <div id="right">
+        {% if list["author"]["nick"] == session["user"]["nick"] %}
+            <input type="button" id="del_form_shower" value="Delete">
+            <form id="del_form" style="border: 1px solid red" method="POST" action="{{ url_for("list_del") }}">
+                <p style="color:red;">List delete</p>
+                <label>List name:<input type="text" name="name"/></label>
+                <input type="hidden" required name="id" value="{{ list["id"] }}" /><br>
+                <input type="submit" id="del_list_btn" value="Delete list" />
+            </form>
+        {% endif %}
+        <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
+    </div>
+    <script>
+        document.getElementById('del_form_shower').onclick = function () {
+            document.getElementById('del_form_shower').style.display = 'none';
+            document.getElementById('del_form').style.display = 'block';
+        };
+    </script>
 {% endblock %}
+
+

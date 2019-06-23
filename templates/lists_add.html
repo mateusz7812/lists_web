@@ -2,22 +2,25 @@
 
 {% block head %}
     <title>List add</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/lists_add.css"/>
 {% endblock %}
 
 {% block body %}
-    <form method="POST" action="{{ url_for("list_add") }}">
-        <label>
-            Name
-            <input type="text" name="name">
-        </label>
-        <label>
-            Content
-            <textarea name="content" cols="40" rows="5"></textarea>
-        </label>
-        {% if error %}
-            <p>{{ error }}</p>
-        {% endif %}
+    <div class="site-7 centered">
+        <form method="POST" action="{{ url_for("list_add") }}">
+            <label>
+                Name<br>
+                <input type="text" name="name">
+            </label><br>
+            <label>
+                Content<br>
+                <textarea name="content" cols="40" rows="5"></textarea><br>
+            </label>
+            {% if error %}
+                <p>{{ error }}</p>
+            {% endif %}
             <input type="submit" value="Add">
-    </form>
-    <input type="button" id="back_btn" value="Back" onclick="document.location='{{ url_for("lists_menu") }}'"/>
+            <input type="button" id="back_btn" value="Back" onclick="document.location='{{ url_for("lists_menu") }}'"/>
+        </form>
+    </div>
 {% endblock %}

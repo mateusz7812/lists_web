@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, render_template, request, url_for, redirect, make_response, session
 
 from requester import Requester
@@ -36,6 +38,10 @@ def check_session():
     return None
 
 
+def convert_str_to_date(string):
+    return datetime.strptime(string, '%Y-%m-%d %H:%M')
+
+
 @app.route("/")
 def index():
     if check_session():
@@ -56,14 +62,7 @@ def user_home():
                         "id": user_id},
              "action": "get"})
         user = db_request["objects"][0]
-        db_request = requester.make_request(
-            {"account": {"type": "session",
-                         "user_id": user_id, "key": user_key},
-             "object": {"type": "list",
-                        "user_id": user_id},
-             "action": "get"})
-        lists = db_request["objects"]
-        return render_template("user_home.html", user=user, lists=lists)
+        return render_template("user_home.html", user=user)
     else:
         return redirect(url_for("index"))
 
@@ -177,16 +176,75 @@ def lists_menu():
     keys = check_session()
     if keys:
         user_id, user_key = keys
+
+        units = []
+
         db_request = requester.make_request(
             {"account": {"type": "session",
                          "user_id": user_id, "key": user_key},
              "object": {"type": "list",
                         "user_id": user_id},
              "action": "get"})
-        if db_request["status"] == "handled":
-            return render_template("lists_menu.html", units=[{"name": "basic", "lists": db_request["objects"]}])
-        else:
+        if db_request["status"] != "handled":
             return render_template("lists_menu.html", error=db_request["error"])
+        upcomming_lists = db_request["objects"]
+        for one_list in upcomming_lists:
+            one_list["author"] = session["user"]["nick"]
+        upcomming_lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
+        if upcomming_lists:
+            units.append({"name": "upcoming", "lists": upcomming_lists})
+
+        followeds_lists = get_followeds_lists(user_id, user_key)
+        add_author_to_list(user_id, user_key, followeds_lists)
+        followeds_lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
+        if followeds_lists:
+            units.append({"name": "followed`s", "lists": followeds_lists})
+
+        return render_template("lists_menu.html", units=units)
+    else:
+        return redirect(url_for("index"))
+
+
+def get_followeds_lists(user_id, user_key):
+    result = requester.make_request(
+        {"account": {"type": "session",
+                     "user_id": user_id, "key": user_key},
+         "object": {"type": "follow",
+                    "follower": user_id},
+         "action": "get"})
+    followeds_ids = [x["followed"] for x in result["objects"]]
+    lists = []
+    for one_id in followeds_ids:
+        db_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "list",
+                        "user_id": one_id},
+             "action": "get"})
+        lists.extend(db_request["objects"])
+    return lists
+
+
+def add_author_to_list(user_id, user_key, lists):
+    for list in lists:
+        get_account_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "account", "id": list["user_id"]},
+             "action": "get"})
+        list["author"] = get_account_request["objects"][0]["nick"]
+    return lists
+
+
+@app.route("/list/followed")
+def followers_lists():
+    keys = check_session()
+    if keys:
+        user_id, user_key = keys
+        lists = get_followeds_lists(user_id, user_key)
+        add_author_to_list(user_id, user_key, lists)
+        lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
+        return render_template("lists_followeds.html", lists=lists)
     else:
         return redirect(url_for("index"))
 
@@ -215,7 +273,7 @@ def list_add():
 
 
 @app.route("/list/<list_id>")
-def list(list_id):
+def one_list(list_id):
     keys = check_session()
     if keys:
         user_id, user_key = keys
@@ -226,6 +284,14 @@ def list(list_id):
                         "id": int(list_id)},
              "action": "get"})
         the_list = db_request["objects"][0]
+        get_user_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "account",
+                        "id": the_list["user_id"]},
+             "action": "get"})
+        user = get_user_request["objects"][0]
+        the_list["author"] = user
         return render_template("list.html", list=the_list)
     else:
         return redirect(url_for("index"))
@@ -274,7 +340,7 @@ def search():
              "action": "get"})
         for result in response["objects"]:
             result["type"] = "list"
-            result["url"] = url_for("list", list_id=result["id"])
+            result["url"] = url_for("one_list", list_id=result["id"])
             results.append(result)
 
         return render_template("search_results.html", results=results, query=request.args.get('query'))

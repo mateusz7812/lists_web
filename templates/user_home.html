@@ -7,19 +7,12 @@
 
 
 {% block body %}
-    <h1>{{ user["nick"] }}</h1>
-    <p>login: {{ user["login"] }}</p>
-    <p>e-mail: {{ user["email"] }}</p>
-    <div>
-    <h3>Your lists</h3>
-    {% for list in lists %}
-        <div onclick="document.location='{{ url_for("list", list_id=list["id"]) }}'">
-            <h5>{{ list["name"] }}</h5>
-            <p>{{ list["content"] }}</p>
-        </div>
-    {% endfor %}
+    <div id="site-6">
+        <h1>{{ user["nick"] }}</h1>
+        <p>login: {{ user["login"] }}</p>
+        <p>e-mail: {{ user["email"] }}</p>
+        <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
     </div>
-    <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
 {% endblock %}
 
 

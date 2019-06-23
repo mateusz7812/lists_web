@@ -1,9 +1,108 @@
-body{
-    text-align: center;
-    padding-top: 20px;
+html{
+    font-family: 'Cinzel Decorative', cursive;
+    color: var(--dark-font-color);
+    background-color: var(--main-bg-color);
 }
 
-.result{
-    margin:10px;
-    border: 1px solid black;
+:root {
+    --main-bg-color:                #022859;
+    --main-list-color:              #A39997;
+    --brown:                        #78635F;
+    --light-font-color:             #F2F2F2;
+    --dark-font-color:              #0D0D0D;
+    --lighter-blue-details-color:   #4B5972;
+    --darker-blue-details-color:    #022859;
+    --blue:                         #2E4DA7;
+}
+
+.site-1{
+    width:80%;
+    margin: 0 5% 0 15%;
+}
+
+.site-2{
+    width:70%;
+    margin: 0 20% 0 10%;
+}
+
+.site-3{
+    width:60%;
+    margin: 0 15% 0 25%;
+}
+
+.site-4{
+    width:50%;
+    margin: 0 30% 0 20%;
+}
+
+.site-5{
+    width:40%;
+    margin: 0 35% 0 25%;
+}
+
+.site-6{
+    width:30%;
+    margin: 0 40% 0 30%;
+}
+
+.site-7{
+    width:20%;
+    margin: 0 45% 0 35%;
+}
+
+[class*="site"]{
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+.centered{
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.list-small{
+    font-family: 'Cinzel', cursive;
+    margin: 20px;
+    height: 270px;
+    width: 220px;
+    padding: 10px;
+    background-color: var(--main-list-color);
+    float: left;
+    text-align: justify;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+[class^=list] p{
+    margin: 5px;
+}
+
+[class^=list] p:first-child,
+[class^=list] p:last-child{
+    height:10%;
+}
+
+[class^=list] p:first-child{
+    text-align: center;
+}
+
+[class^=list] p:last-child {
+    text-align: right;
+}
+
+[class^=list] p:nth-child(2){
+    height:80%;
+    text-align: justify;
+    overflow: hidden;
+}
+
+
+@media only screen and (max-width: 1000px) {
+    [class^=site-] {
+        width:  100%;
+        margin: 0;
+    }
 }

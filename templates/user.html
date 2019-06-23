@@ -1,43 +1,67 @@
 {% extends "main.html" %}
 
 {% block head %}
-    <h1>{{ user["nick"] }}</h1>
-
+    <title>User {{ user["nick"] }}</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/user.css"/>
 {% endblock %}
 
 {% block body %}
-    <h1>{{ user["nick"] }}</h1>
-    {% if user["followed"] %}
-        <p id="follow_label">Followed</p>
-        <input type="button" id="unfollow_btn" value="Unfollow" onclick="unfollow()"/>
-        <script>
-            function unfollow() {
-                const xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = function () {
-                    if (this.readyState === 4 && this.status === 200) {
-                        document.location.reload();
-                    }
-                };
+    <div id="site-5">
+        <p>Nick: <span>{{ user["nick"] }}</span></p>
+        <p>Email:<span>
+            {% if user["email"] %}
+                {{ user["email"] }}
+            {% else %}
+                no data
+            {% endif %}
+        </span></p>
+        <p>Last login:<span>
+            {% if user["last_login"] %}
+                {{ user["last_login"] }}
+            {% else %}
+                no data
+            {% endif %}
+        </span></p>
+        <hr/>
+        <input type="button" id="follow_btn" onclick="change_following()"/>
+        <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
+    </div>
+
+    <script>
+        let followed = {{ user["followed"] }};
+        let follow_btn = document.getElementById("follow_btn");
+        change_btn_value();
+
+        function change_btn_value(){
+            if(followed){
+                follow_btn.setAttribute("value", "Unfollow")
+            }
+            else{
+                follow_btn.setAttribute("value", "Follow")
+            }
+        }
+
+        function change_following(){
+            const xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    document.location.reload();
+                }
+            };
+
+            if(followed) {
                 xhttp.open("GET", "{{ url_for("unfollow", id=user["id"]) }}", true);
-                xhttp.send();
+                followed = false;
             }
-        </script>
-    {% else %}
-        <input type="button" id="follow_btn" value="Follow" onclick="follow()"/>
-        <script>
-            function follow() {
-                const xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = function () {
-                    if (this.readyState === 4 && this.status === 200) {
-                        document.location.reload();
-                    }
-                };
+            else{
                 xhttp.open("GET", "{{ url_for("follow", id=user["id"]) }}", true);
-                xhttp.send();
+                followed = true;
             }
-        </script>
-    {% endif %}
-    <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
+
+            xhttp.send();
+            change_btn_value();
+        }
+    </script>
 
 {% endblock %}
 
