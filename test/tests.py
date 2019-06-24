@@ -4,7 +4,7 @@ from unittest import TestCase
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-import main
+import Main
 from requester import Requester
 
 requester = Requester()
@@ -12,12 +12,12 @@ requester = Requester()
 
 class TestWeb(TestCase):
     def setUp(self):
-        main.run()
+        Main.run()
         self.browser = webdriver.Firefox()
         self.browser.implicitly_wait(3)
 
     def tearDown(self):
-        main.terminate()
+        Main.terminate()
         self.browser.quit()
 
     def test_basic_sequence(self):
