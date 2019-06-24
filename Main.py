@@ -15,7 +15,7 @@ def _run():
     app.secret_key = 'super secret key'
     app.config['SESSION_TYPE'] = 'filesystem'
 
-    app.run(port=80)
+    app.run(host="0.0.0.0", port=80)
 
 
 def terminate():
