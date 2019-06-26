@@ -4,7 +4,7 @@ import requests
 
 
 class Requester:
-    def __init__(self, addres: str = "http://172.18.0.2:7000"):
+    def __init__(self, addres: str = "http://core:7000"):
         self.addres = addres
 
     def make_request(self, data):
