@@ -94,6 +94,8 @@ def user(id):
 
         if db_request["objects"]:
             user["followed"] = True
+        else:
+            user["followed"] = False
 
         return render_template("user.html", user=user)
     else:
