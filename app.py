@@ -85,14 +85,13 @@ def user(id):
         user = db_request["objects"][0]
 
         db_request = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
              "object": {"type": "follow",
                         "followed": user["id"],
                         "follower": user_id},
              "action": "get"})
-        print(db_request)
+
         if db_request["objects"]:
             user["followed"] = True
 
