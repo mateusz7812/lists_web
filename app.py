@@ -355,9 +355,9 @@ def follow(id):
     if keys:
         user_id, user_key = keys
         response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
+            {"account": {"type": "session",
+                         "user_id": user_id,
+                         "key": user_key},
              "object": {"type": "follow",
                         "followed": int(id),
                         "follower": user_id},
@@ -371,9 +371,9 @@ def unfollow(id):
     if keys:
         user_id, user_key = keys
         response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
+            {"account": {"type": "session",
+                         "user_id": user_id,
+                         "key": user_key},
              "object": {"type": "follow",
                         "followed": int(id),
                         "follower": user_id},
