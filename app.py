@@ -73,7 +73,7 @@ def user(id):
     if keys:
         user_id, user_key = keys
         if int(id) == user_id:
-            return redirect("user_home")
+            return redirect(url_for("user_home"))
 
         db_request = requester.make_request(
             {"account": {"type": "session",
