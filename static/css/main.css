@@ -53,6 +53,7 @@ html{
 }
 
 [class*="site"]{
+    z-index: 1;
     padding: 30px;
     box-sizing: border-box;
 }
@@ -66,13 +67,14 @@ html{
 }
 
 .list-small{
+    position: relative;
+    display: inline-block;
     font-family: 'Cinzel', cursive;
     margin: 20px;
     height: 270px;
     width: 220px;
     padding: 10px;
     background-color: var(--first-basic-color);
-    float: left;
     text-align: justify;
     overflow: hidden;
     cursor: pointer;
@@ -99,6 +101,7 @@ html{
 [class^=list] p:nth-child(2){
     height:80%;
     text-align: justify;
+    word-break: break-word;
     overflow: hidden;
 }
 

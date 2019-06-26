@@ -5,16 +5,6 @@ form{
 }
 
 
-form:before {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    border-top: 50px solid #4E3DFF;
-    border-left: 50px solid rgba(1,1,1, 0.0);
-    width: 0;
-}
-
-
 input[type="button"],
 input[type="submit"]{
     width: 80px;
