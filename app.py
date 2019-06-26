@@ -92,8 +92,8 @@ def user(id):
                         "followed": user["id"],
                         "follower": user_id},
              "action": "get"})
-
-        if len(db_request["objects"]):
+        print(db_request)
+        if db_request["objects"]:
             user["followed"] = True
 
         return render_template("user.html", user=user)
