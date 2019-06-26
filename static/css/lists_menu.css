@@ -6,9 +6,9 @@
 .unit_header{
     line-height: 30px;
     text-align: center;
-    color: var(--light-font-color);
+    color: var(--dark-font-color);
     font-weight: bold;
     width: 100%;
     height: 30px;
-    background-color: var(--lighter-blue-details-color);
+    background-color: var(--second-basic-color);
 }

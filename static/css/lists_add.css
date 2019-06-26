@@ -1,6 +1,6 @@
 [class*="site"]{
     text-align: left;
-    background-color: var(--main-bg-color);
+    background-color: var(--first-basic-color);
 }
 
 [class*="site"]>form{

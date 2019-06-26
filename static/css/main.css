@@ -2,17 +2,19 @@ html{
     font-family: 'Cinzel Decorative', cursive;
     color: var(--dark-font-color);
     background-color: var(--main-bg-color);
+
+    -moz-user-select: none;
+    user-select: none;
 }
 
 :root {
-    --main-bg-color:                #022859;
-    --main-list-color:              #A39997;
-    --brown:                        #78635F;
+    --main-bg-color:                #EFEFEC;
+    --first-basic-color:            #fff;
+    --second-basic-color:           #7DAED4;
+    --first-details-color:          #022859;
+    --second-details-color:         black;
     --light-font-color:             #F2F2F2;
-    --dark-font-color:              #0D0D0D;
-    --lighter-blue-details-color:   #4B5972;
-    --darker-blue-details-color:    #022859;
-    --blue:                         #2E4DA7;
+    --dark-font-color:              #365166;
 }
 
 .site-1{
@@ -69,11 +71,12 @@ html{
     height: 270px;
     width: 220px;
     padding: 10px;
-    background-color: var(--main-list-color);
+    background-color: var(--first-basic-color);
     float: left;
     text-align: justify;
     overflow: hidden;
     cursor: pointer;
+    box-shadow: 0 0 3px 1px var(--first-details-color);
 }
 
 [class^=list] p{
