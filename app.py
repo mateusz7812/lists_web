@@ -93,9 +93,9 @@ def user(id):
              "action": "get"})
 
         if db_request["objects"]:
-            user["followed"] = True
+            user["followed"] = "true"
         else:
-            user["followed"] = False
+            user["followed"] = "false"
 
         return render_template("user.html", user=user)
     else:
