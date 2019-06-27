@@ -1,13 +1,12 @@
 [class*="site"]{
     text-align: left;
-    background-color: var(--first-basic-color);
 }
 
 [class*="site"]>form{
     width: 100%;
 }
 
-[class*="site"] input[name="text"],
+[class*="site"] input[type="text"],
 [class*="site"] textarea{
     width: 100%;
 }

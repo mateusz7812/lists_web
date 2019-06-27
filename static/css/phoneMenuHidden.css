@@ -1,0 +1,27 @@
+
+@media only screen and (max-width: 1000px) {
+    #sidebar{
+        margin: 0;
+        width: 80px;
+        max-width: 400px;
+        height: 70px;
+        box-shadow: 0 0 3px var(--first-details-color)
+    }
+
+    #logo{
+        font-size: 60px;
+        margin: 0;
+    }
+
+    .menu_div {
+        width: 80%;
+        font-size: 0;
+        height: 0;
+        margin: 0;
+    }
+
+
+    [class*=site-] {
+        padding-top: 15vh;
+    }
+}

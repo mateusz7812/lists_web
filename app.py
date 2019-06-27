@@ -293,7 +293,7 @@ def one_list(list_id):
              "action": "get"})
         user = get_user_request["objects"][0]
         the_list["author"] = user
-        return render_template("list.html", list=the_list)
+        return render_template("list_id.html", list=the_list)
     else:
         return redirect(url_for("index"))
 

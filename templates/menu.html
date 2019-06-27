@@ -5,14 +5,9 @@
             <div id="logo">
                 L
             </div>
-            <div id="search_div">
-                <div class="menu_div" id="click_taker">
-                        Search
-                </div>
-                <form method="GET" id="search_form" action="{{ url_for("search")}}">
-                    <input type="search" id="search_bar" name="query" placeholder="search"/>
-                </form>
-            </div>
+            <form class="menu_div" method="GET" action="{{ url_for("search")}}">
+                <input type="search" id="search_bar" name="query" placeholder="search"/>
+            </form>
             <div class="menu_div" id="add_list_div" onclick="document.location='{{ url_for("list_add") }}'">New</div>
             <div class="menu_div" id="lists_menu_div" onclick="document.location='{{ url_for("lists_menu") }}'">All</div>
             <div class="menu_div" id="invites_div" onclick="document.location='#'">Invites</div>
@@ -23,25 +18,18 @@
             <div class="menu_div" id="log_out_div" onclick="document.location='{{ url_for("logout") }}'">Log out</div>
         </div>
     </div>
-{% endif %}
 
-<script>
-    let status = 1;
-    document.getElementById('click_taker').onclick = function () {
-        if(status){
-            document.getElementById('search_form').style.height = '60px';
-            document.getElementById('search_form').style.width = '200px';
-            document.getElementById('search_div').style.width = "320px";
-            document.getElementById('search_bar').style.display = "inline-block";
-            document.getElementById('search_bar').focus();
-            status = 0;
+    <script>
+        let hidden = 1;
+        document.getElementById("logo").onclick = function () {
+            if(hidden){
+                document.getElementById("phoneMenu").setAttribute("href", "../static/css/phoneMenuVisible.css");
+                hidden = 0;
+            }
+            else{
+                document.getElementById("phoneMenu").setAttribute("href", "../static/css/phoneMenuHidden.css");
+                hidden = 1;
+            }
         }
-        else{
-            document.getElementById('search_form').style.height = '0';
-            document.getElementById('search_form').style.width = '0';
-            document.getElementById('search_div').style.width = "120px";
-            document.getElementById('search_bar').style.display = "none";
-            status = 1;
-        }
-    };
-</script>
+    </script>
+{% endif %}

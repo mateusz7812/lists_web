@@ -24,12 +24,12 @@ html{
 
 .site-2{
     width:70%;
-    margin: 0 20% 0 10%;
+    margin: 0 10% 0 20%;
 }
 
 .site-3{
     width:60%;
-    margin: 0 15% 0 25%;
+    margin: 0 17% 0 23%;
 }
 
 .site-4{
@@ -52,10 +52,17 @@ html{
     margin: 0 45% 0 35%;
 }
 
+body{
+    margin: 0;
+}
+
 [class*="site"]{
+    background-color: var(--first-basic-color);
     z-index: 1;
     padding: 30px;
     box-sizing: border-box;
+    transition: height 0.8s, width 0.8s, margin 1s, font-size 0.5s;
+
 }
 
 .centered{
@@ -66,45 +73,21 @@ html{
     transform: translate(-50%, -50%);
 }
 
-.list-small{
-    position: relative;
-    display: inline-block;
-    font-family: 'Cinzel', cursive;
-    margin: 20px;
-    height: 270px;
-    width: 220px;
-    padding: 10px;
-    background-color: var(--first-basic-color);
-    text-align: justify;
-    overflow: hidden;
-    cursor: pointer;
-    box-shadow: 0 0 3px 1px var(--first-details-color);
-}
-
-[class^=list] p{
-    margin: 5px;
-}
-
-[class^=list] p:first-child,
-[class^=list] p:last-child{
-    height:10%;
-}
-
-[class^=list] p:first-child{
+.unit{
+    width: 100%;
     text-align: center;
 }
 
-[class^=list] p:last-child {
-    text-align: right;
+.unit_header{
+    line-height: 30px;
+    text-align: center;
+    color: var(--dark-font-color);
+    font-weight: bold;
+    width: 100%;
+    height: 30px;
+    background-color: var(--second-basic-color);
+    box-shadow: 0 -2px 3px var(--first-details-color);
 }
-
-[class^=list] p:nth-child(2){
-    height:80%;
-    text-align: justify;
-    word-break: break-word;
-    overflow: hidden;
-}
-
 
 @media only screen and (max-width: 1000px) {
     [class^=site-] {

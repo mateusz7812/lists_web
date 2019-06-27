@@ -1,0 +1,21 @@
+
+
+#left,
+#right{
+    width: 50%;
+    float: left;
+}
+
+#right>*{
+    width: 50%;
+    margin: 20px 25%;
+}
+
+#del_form{
+    display: none;
+    padding: 20px;
+}
+
+#del_list_btn{
+    margin: 20px;
+}

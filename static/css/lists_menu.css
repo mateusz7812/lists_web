@@ -1,16 +1,6 @@
-.unit{
-    width: 80%;
-    margin: 0 10%;
-    text-align: center;
-}
 
-.unit_header{
-    line-height: 30px;
-    text-align: center;
-    color: var(--dark-font-color);
-    font-weight: bold;
-    width: 100%;
-    height: 30px;
-    background-color: var(--second-basic-color);
-    box-shadow: 0 -2px 3px var(--first-details-color);
+
+[class*="site"] {
+    min-height: 100vh;
+    padding-top: 10vh;
 }

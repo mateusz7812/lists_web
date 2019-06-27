@@ -1,15 +1,16 @@
 .menu_div{
     position: relative;
     z-index: 15;
-    width: 120px;
-    height: 60px;
-    float: left;
+    width: 80%;
+    height: 5vh;
     background-color: var(--second-basic-color);
     justify-content: center;
     display: flex;
     align-items: center;
-    margin: 10px 0;
+    margin: 1vh auto;
+    overflow: hidden;
     cursor: pointer;
+    transition: height 0.1s, width 0.1s, margin 0.1s, font-size 0.1s;
 }
 
 .menu_div{
@@ -20,10 +21,9 @@
     box-shadow: 0 0 2px 1px var(--second-details-color);
 }
 
-
 #logo{
     font-family: 'Molle', cursive;
-    width:120px;
+    width: 100%;
     text-align: center;
     font-size: 6vw;
     margin-bottom: 20px;
@@ -35,9 +35,8 @@
     position: fixed;
     background-color: var(--first-basic-color);
     height: 100vh;
-    width: 120px;
-    padding: 20px;
-    transform: translate(0, -20px);
+    width: 10vw;
+    transition: height 0.3s, width 0.3s, margin 0.3s;
 }
 
 #menu{
@@ -46,49 +45,24 @@
     top: 50%;
     transform: translate(0, -50%);
     font-weight: bold;
-}
-
-#search_form{
-    position: relative;
-    z-index: 12;
-    cursor: default;
-    height: 100%;
-    width: 0;
-    line-height: 60px;
-    text-align: center;
-    background-color: var(--second-basic-color);
-    box-shadow: 0 0 3px 0 var(--second-details-color), 3px 0 5px -5px var(--second-details-color) inset;
-}
-#search_form>input{
-    padding: 5px;
-    font-size: 120%;
-    font-family: 'Cinzel', cursive;
-    width: 90%;
-    text-align: left;
-}
-
-#search_div{
-    height: 60px;
-    width: auto;
-    margin: 10px 0;
-}
-#search_div>*{
-    float: left;
-}
-
-#click_taker{
-    display: block;
-    height: 60px;
-    width: 120px;
-    line-height: 60px;
-    text-align: center;
-}
-
-#search_div>.menu_div{
-    margin: 0;
+    font-size: 0.8vw;
 }
 
 #search_bar{
-    display: none;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+    font-size: 120%;
+    font-family: 'Cinzel', cursive;
 }
 
+@media only screen and (max-width: 1500px) {
+    #sidebar{
+        margin-left: 5%;
+        width: 13vw;
+    }
+
+    #menu{
+        font-size: 1.2vw;
+    }
+}
