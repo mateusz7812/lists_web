@@ -1,15 +1,45 @@
 
+
+#logo{
+    font-family: 'Molle', cursive;
+    width: 100%;
+    text-align: center;
+    font-size: 8vw;
+    margin-bottom: 40px;
+}
+
 form{
     background-color: var(--first-basic-color);
     text-align: center;
+    width: 100%;
+    padding-bottom: 250px;
+}
+
+
+[class*="site"]{
+    min-width: 300px;
+    height: 100vh;
 }
 
 
 input[type="button"],
 input[type="submit"]{
-    width: 80px;
+    width: 40%;
+    max-width: 200px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"]{
+    width: 80%;
+    max-width: 400px;
 }
 
 input{
     margin-bottom: 10px;
 }
+
+#info{
+    color: darkred;
+}
+

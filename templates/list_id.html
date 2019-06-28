@@ -6,24 +6,24 @@
 {% endblock %}
 
 {% block body %}
-    <div id="left">
-        <div class="list">
-            <h1 id="list_name">{{ list["author"]["nick"] }} - {{ list["name"] }}</h1>
-            <p id="list_content">{{ list["content"] }}</p>
-            <p id="list_date">{{ list["date"] }}</p>
+    <div class="centered">
+        <div>
+            <div class="list-big">
+                <h1 id="list_name">{{ list["author"]["nick"] }} - {{ list["name"] }}</h1>
+                <p id="list_content">{{ list["content"] }}</p>
+                <p id="list_date">{{ list["date"] }}</p>
+            </div>
+            {% if list["author"]["nick"] == session["user"]["nick"] %}
+                <input type="button" id="del_form_shower" value="Delete">
+                <form id="del_form" style="border: 1px solid red" method="POST" action="{{ url_for("list_del") }}">
+                    <p style="color:red;">List delete</p>
+                    <label>List name:<input type="text" name="name"/></label>
+                    <input type="hidden" required name="id" value="{{ list["id"] }}" /><br>
+                    <input type="submit" id="del_list_btn" value="Delete list" />
+                </form>
+            {% endif %}
+            <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
         </div>
-    </div>
-    <div id="right">
-        {% if list["author"]["nick"] == session["user"]["nick"] %}
-            <input type="button" id="del_form_shower" value="Delete">
-            <form id="del_form" style="border: 1px solid red" method="POST" action="{{ url_for("list_del") }}">
-                <p style="color:red;">List delete</p>
-                <label>List name:<input type="text" name="name"/></label>
-                <input type="hidden" required name="id" value="{{ list["id"] }}" /><br>
-                <input type="submit" id="del_list_btn" value="Delete list" />
-            </form>
-        {% endif %}
-        <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
     </div>
     <script>
         document.getElementById('del_form_shower').onclick = function () {

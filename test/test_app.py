@@ -11,6 +11,16 @@ requester = Requester()
 
 
 class LoginTest(TestCase):
+    def setUpClass():
+        requester.make_request(
+            {"account": {"type": "anonymous"},
+             "object": {"type": "account",
+                        "nick": "admin",
+                        "login": "admin",
+                        "password": "admin",
+                        "account_type": "admin"},
+             "action": "add"})
+
     def setUp(self):
         Main.run()
         self.browser = webdriver.Firefox()
@@ -54,7 +64,7 @@ class LoginTest(TestCase):
                         "user_id": user_id},
              "action": "del"})
 
-        self.browser.get("http://localhost:5000/user/login")
+        self.browser.get("http://localhost/user/login")
 
         login_input_box = self.browser.find_element_by_name('login')
         password_input_box = self.browser.find_element_by_name('password')
@@ -80,10 +90,32 @@ class LoginTest(TestCase):
         self.assertEqual(user_id, int(self.browser.get_cookie("user_id")["value"]))
         self.assertEqual(user_key, self.browser.get_cookie("user_key")["value"])
 
-        self.browser.get("http://localhost:5000/user/logout")
+        self.browser.get("http://localhost/user/logout")
 
         self.assertEqual(None, self.browser.get_cookie("user_id"))
         self.assertEqual(None, self.browser.get_cookie("user_key"))
+
+    def test_bad_login(self):
+        requester.make_request(
+            {"account": {"type": "admin", "login": "admin", "password": "admin"},
+             "object": {"type": "account",
+                        "login": "test"},
+             "action": "del"})
+
+        self.browser.get("http://localhost/user/login")
+
+        login_input_box = self.browser.find_element_by_name('login')
+        password_input_box = self.browser.find_element_by_name('password')
+
+        login_input_box.send_keys('test')
+        password_input_box.send_keys('test')
+        password_input_box.send_keys(Keys.ENTER)
+
+        time.sleep(2)
+
+        info_p = self.browser.find_element_by_id('info').text
+
+        self.assertEqual("account not found", info_p)
 
     def test_list_adding(self):
         requester.make_request(
@@ -134,12 +166,12 @@ class LoginTest(TestCase):
 
         user_key = response["objects"][0]["key"]
 
-        self.browser.get("http://localhost:5000")
+        self.browser.get("http://localhost")
 
         self.browser.add_cookie({"name": "user_id", "value": str(user_id)})
         self.browser.add_cookie({"name": 'user_key', "value": user_key})
 
-        self.browser.get("http://localhost:5000/list/add")
+        self.browser.get("http://localhost/list/add")
 
         name_input_box = self.browser.find_element_by_name('name')
         content_input_box = self.browser.find_element_by_name('content')
@@ -230,13 +262,13 @@ class LoginTest(TestCase):
 
         list_id = response["objects"][0]["id"]
 
-        self.browser.get("http://localhost:5000")
+        self.browser.get("http://localhost")
         self.browser.delete_all_cookies()
 
         self.browser.add_cookie({"name": "user_id", "value": str(user_id)})
         self.browser.add_cookie({"name": 'user_key', "value": user_key})
 
-        self.browser.get("http://localhost:5000/list/"+str(list_id))
+        self.browser.get("http://localhost/list/" + str(list_id))
 
         list_name_field = self.browser.find_element_by_id('list_name')
         list_content_field = self.browser.find_element_by_id('list_content')
@@ -263,10 +295,10 @@ class LoginTest(TestCase):
         self.assertEqual(0, len(response["objects"]))
 
     def test_log_out_btn(self):
-        self.browser.get("http://localhost:5000")
+        self.browser.get("http://localhost")
         self.browser.delete_all_cookies()
 
-        self.browser.get("http://localhost:5000/user/login")
+        self.browser.get("http://localhost/user/login")
 
         self.assertEqual(0, len(self.browser.find_elements_by_id('log_out_btn')))
 
@@ -314,7 +346,7 @@ class LoginTest(TestCase):
         self.browser.add_cookie({"name": "user_id", "value": str(user_id)})
         self.browser.add_cookie({"name": 'user_key', "value": user_key})
 
-        self.browser.get("http://localhost:5000/list")
+        self.browser.get("http://localhost/list")
 
         self.assertEqual(1, len(self.browser.find_elements_by_id('log_out_div')))
 
@@ -411,13 +443,13 @@ class LoginTest(TestCase):
 
         user_key = response["objects"][0]["key"]
 
-        self.browser.get("http://localhost:5000")
+        self.browser.get("http://localhost")
         self.browser.delete_all_cookies()
 
         self.browser.add_cookie({"name": "user_id", "value": str(other1_id)})
         self.browser.add_cookie({"name": 'user_key', "value": user_key})
 
-        self.browser.get("http://localhost:5000/search?query=other2")
+        self.browser.get("http://localhost/search?query=other2")
 
         time.sleep(2)
 
@@ -427,7 +459,7 @@ class LoginTest(TestCase):
         current_url = self.browser.current_url
         self.assertRegex(current_url, '/user/' + str(other2_id))
 
-        self.browser.get("http://localhost:5000/search?query=other3")
+        self.browser.get("http://localhost/search?query=other3")
 
         time.sleep(2)
 
@@ -601,7 +633,7 @@ class LoginTest(TestCase):
 
         test_key = response["objects"][0]["key"]
 
-        self.browser.get("http://localhost:5000")
+        self.browser.get("http://localhost")
         self.browser.delete_all_cookies()
 
         self.browser.add_cookie({"name": "user_id", "value": str(test_id)})
@@ -609,9 +641,8 @@ class LoginTest(TestCase):
 
         # check results
 
-        self.browser.get("http://localhost:5000/list/followed")
+        self.browser.get("http://localhost/list/followed")
 
-        results = self.browser.find_elements_by_class_name("list")
+        results = self.browser.find_elements_by_class_name("list-small")
         self.assertEqual("other1 - other1_list", results[0].find_elements_by_tag_name("p")[0].text)
         self.assertEqual("other2 - other2_list", results[1].find_elements_by_tag_name("p")[0].text)
-

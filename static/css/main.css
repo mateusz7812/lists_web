@@ -57,9 +57,10 @@ body{
 }
 
 [class*="site"]{
+    min-height: 100vh;
+    padding: 10vh 30px;
     background-color: var(--first-basic-color);
     z-index: 1;
-    padding: 30px;
     box-sizing: border-box;
     transition: height 0.8s, width 0.8s, margin 1s, font-size 0.5s;
 
@@ -87,6 +88,10 @@ body{
     height: 30px;
     background-color: var(--second-basic-color);
     box-shadow: 0 -2px 3px var(--first-details-color);
+}
+
+input{
+    text-align: center;
 }
 
 @media only screen and (max-width: 1000px) {

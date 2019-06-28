@@ -134,6 +134,9 @@ def login():
                         "login": login,
                         "password": password},
              "action": "get"})
+        if not get_user_request["objects"]:
+            return render_template("login.html", error='account not found')
+
         user_id = get_user_request["objects"][0]["id"]
 
         add_session_request = requester.make_request(

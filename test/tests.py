@@ -27,7 +27,7 @@ class TestWeb(TestCase):
                         "login": "test"},
              "action": "del"})
 
-        self.browser.get("http://localhost:5000")
+        self.browser.get("http://localhost")
 
         # user page
 
@@ -112,7 +112,7 @@ class TestWeb(TestCase):
         current_url = self.browser.current_url
         self.assertRegex(current_url, '/list')
 
-        lists = self.browser.find_elements_by_class_name("list")
+        lists = self.browser.find_elements_by_class_name("list-small")
         self.assertEqual(1, len(lists))
 
         response = requester.make_request(
@@ -205,7 +205,7 @@ class TestWeb(TestCase):
                         "follower": test_id},
              "action": "del"})
 
-        self.browser.get("http://localhost:5000")
+        self.browser.get("http://localhost")
 
         login_input_box = self.browser.find_element_by_name('login')
         password_input_box = self.browser.find_element_by_name('password')
@@ -216,8 +216,6 @@ class TestWeb(TestCase):
 
         time.sleep(4)
 
-        self.browser.find_element_by_id("search_div").click()
-        self.browser.find_element_by_id("search_div").click()
         search_bar = self.browser.find_element_by_id("search_bar")
 
         search_bar.send_keys("other1")
@@ -250,14 +248,8 @@ class TestWeb(TestCase):
 
         self.assertEqual(1, len(response["objects"]))
 
-        follow_btns = self.browser.find_elements_by_id("follow_btn")
-        self.assertEqual(0, len(follow_btns))
-
-        follow_labels = self.browser.find_elements_by_id("follow_label")
-        self.assertEqual(1, len(follow_labels))
-
-        unfollow_btn = self.browser.find_element_by_id("unfollow_btn")
-        unfollow_btn.click()
+        follow_btn = self.browser.find_element_by_id("follow_btn")
+        follow_btn.click()
 
         time.sleep(3)
 

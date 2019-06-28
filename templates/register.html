@@ -9,31 +9,36 @@
 {% endblock %}
 
 {% block body %}
-    <form class="centered site-7" method="POST" action="{{ url_for("register")}}">
-        <label>
-            Username:
-            <input required type="text" name="nick">
-        </label>
-        <label><br>
-            Login:
-            <input required type="text" name="login">
-        </label><br>
-        <label>
-            Password:
-            <input required type="password" name="password">
-        </label><br>
-        <label>
-            E-mail:
-            <input required type="email" name="email">
-        </label><br>
-        {% if info %}
-            {{ info }}<br>
-        {% endif %}
-        <input type="submit" value="Register"><br>
-        <label id="login_label">
-            Are you registered?<br>
-            <input type="button" id="login" value="Login" onclick="document.location='{{ url_for("login") }}'">
-        </label>
+    <div class="site-7 centered">
+        <form class="centered" method="POST" action="{{ url_for("register")}}">
+            <div id="logo">
+                L
+            </div>
+            <label>
+                Username:
+                <input required type="text" name="nick">
+            </label>
+            <label><br>
+                Login:
+                <input required type="text" name="login">
+            </label><br>
+            <label>
+                Password:
+                <input required type="password" name="password">
+            </label><br>
+            <label>
+                E-mail:
+                <input required type="email" name="email">
+            </label><br>
+            {% if info %}
+                {{ info }}<br>
+            {% endif %}
+            <input type="submit" value="Register"><br>
+            <label id="login_label">
+                Are you registered?<br>
+                <input type="button" id="login" value="Login" onclick="document.location='{{ url_for("login") }}'">
+            </label>
 
-    </form>
+        </form>
+    </div>
 {% endblock %}

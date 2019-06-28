@@ -7,23 +7,27 @@
 {% endblock %}
 
 {% block body %}
-    <form class="centered site-7" method="POST" action="{{ url_for("login") }}">
-        <label>
-            Login<br>
-            <input type="text" name="login">
-        </label><br>
-        <label>
-            Password<br>
-            <input type="password" name="password">
-        </label><br>
-        {% if error %}
-            <p>{{ error }}</p><br>
-        {% endif %}
-        <input type="submit" value="Login"><br>
-        <label>
-            Are you not registered?<br>
-            <input type="button" id="register" value="Register" onclick="document.location='{{ url_for("register") }}'">
-        </label>
-    </form>
-
+    <div class="site-7 centered">
+        <form class="centered" method="POST" action="{{ url_for("login") }}">
+            <div id="logo">
+                L
+            </div>
+            <label>
+                Login<br>
+                <input type="text" name="login">
+            </label><br>
+            <label>
+                Password<br>
+                <input type="password" name="password">
+            </label><br>
+            {% if error %}
+                <p id="info">{{ error }}</p>
+            {% endif %}
+            <input type="submit" value="Login"><br>
+            <label>
+                Are you not registered?<br>
+                <input type="button" id="register" value="Register" onclick="document.location='{{ url_for("register") }}'">
+            </label>
+        </form>
+    </div>
 {% endblock %}

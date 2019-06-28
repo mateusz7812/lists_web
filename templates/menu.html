@@ -14,7 +14,6 @@
             <div class="menu_div" id="upcoming_div" onclick="document.location='#'">Upcoming</div>
             <div class="menu_div" id="followed_div" onclick="document.location='{{ url_for("followers_lists") }}'">Followed`s</div>
             <div class="menu_div" id="user_div" onclick="document.location='{{ url_for("user_home") }}'">{{ session["user"]["nick"] }}</div>
-            <div class="menu_div" id="settings_div" onclick="document.location='#'">Settings</div>
             <div class="menu_div" id="log_out_div" onclick="document.location='{{ url_for("logout") }}'">Log out</div>
         </div>
     </div>

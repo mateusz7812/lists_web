@@ -10,10 +10,16 @@ input[type="text"],
 input[type="password"],
 input[type="email"]{
     float: right;
+    width: 50%;
+}
+
+[class*="site"]{
+    max-width: 600px;
+    min-width: 400px;
 }
 
 form{
-    height: 320px;
+    height: 340px;
 }
 
 #login_label{
