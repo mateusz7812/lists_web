@@ -1,12 +1,19 @@
+import os
 from datetime import datetime
 
-from flask import Flask, render_template, request, url_for, redirect, make_response, session
+from flask import Flask, render_template, request, url_for, redirect, make_response, session, send_from_directory
 
 from requester import Requester
 
 app = Flask(__name__)
 
 requester = Requester()
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'icon.png', mimetype='image/png')
 
 
 def add_user_to_session(user_id, user_key):
