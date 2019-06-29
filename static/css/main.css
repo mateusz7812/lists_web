@@ -7,6 +7,10 @@ html{
     user-select: none;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 :root {
     --main-bg-color:                #EFEFEC;
     --first-basic-color:            #fff;
