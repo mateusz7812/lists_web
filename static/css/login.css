@@ -42,3 +42,9 @@ input{
     color: darkred;
 }
 
+
+@media only screen and (max-width: 1000px) {
+    #logo {
+        font-size: 30vw;
+    }
+}

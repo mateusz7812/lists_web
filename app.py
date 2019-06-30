@@ -141,6 +141,9 @@ def login():
                         "login": login,
                         "password": password},
              "action": "get"})
+        if "objects" not in get_user_request:
+            return render_template("login.html", error='server error')
+
         if not get_user_request["objects"]:
             return render_template("login.html", error='account not found')
 
@@ -221,7 +224,8 @@ def get_followeds_lists(user_id, user_key):
         {"account": {"type": "session",
                      "user_id": user_id, "key": user_key},
          "object": {"type": "follow",
-                    "follower": user_id},
+                    "follower": user_id,
+                    "following": "follow_account"},
          "action": "get"})
     followeds_ids = [x["followed"] for x in result["objects"]]
     lists = []

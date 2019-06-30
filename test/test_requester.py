@@ -22,4 +22,4 @@ class TestRequester(TestCase):
     @patch('requests.post', side_effect=ret_val)
     def test_make_request(self, test_patch):
         value = self.requester.make_request("message")
-        self.assertEqual(value, [['http://localhost:8080'], {'data': '"message"'}])
+        self.assertEqual(value[1], {'data': '"message"'})
