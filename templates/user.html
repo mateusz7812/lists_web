@@ -50,11 +50,11 @@
             };
 
             if(followed) {
-                xhttp.open("GET", "{{ url_for("unfollow", id=user["id"]) }}", true);
+                xhttp.open("GET", "{{ url_for("unfollow", type="account", id=user["id"]) }}", true);
                 followed = false;
             }
             else{
-                xhttp.open("GET", "{{ url_for("follow", id=user["id"]) }}", true);
+                xhttp.open("GET", "{{ url_for("follow", type="account", id=user["id"]) }}", true);
                 followed = true;
             }
 

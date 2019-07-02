@@ -1,27 +1,26 @@
-label{
-    width: 80%;
-    margin-left: 10%;
-    margin-right: 10%;
-    display: block;
-    text-align: left;
-}
+
 
 input[type="text"],
 input[type="password"],
 input[type="email"]{
+    display: inline-block;
     float: right;
     width: 50%;
+    margin: 0;
 }
 
 [class*="site"]{
     max-width: 600px;
-    min-width: 400px;
+    min-width: 450px;
 }
 
 form{
-    height: 340px;
+    height: 580px;
 }
 
-#login_label{
-    text-align: center;
+label {
+    width: 80%;
+    margin-left: 10%;
+    margin-right: 10%;
+    line-height: 28px;
 }

@@ -18,23 +18,23 @@
                 Username:
                 <input required type="text" name="nick">
             </label>
-            <label><br>
+            <label>
                 Login:
                 <input required type="text" name="login">
-            </label><br>
+            </label>
             <label>
                 Password:
                 <input required type="password" name="password">
-            </label><br>
+            </label>
             <label>
                 E-mail:
                 <input required type="email" name="email">
-            </label><br>
+            </label>
             {% if info %}
-                {{ info }}<br>
+                {{ info }}
             {% endif %}
-            <input type="submit" value="Register"><br>
-            <label id="login_label">
+            <label id="button_label"><input type="submit" value="Register"></label>
+            <label id="button_label">
                 Are you registered?<br>
                 <input type="button" id="login" value="Login" onclick="document.location='{{ url_for("login") }}'">
             </label>

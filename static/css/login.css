@@ -11,6 +11,7 @@
 form{
     text-align: center;
     width: 100%;
+    font-size: 1vw;
 }
 
 
@@ -24,16 +25,22 @@ input[type="button"],
 input[type="submit"]{
     width: 40%;
     max-width: 200px;
+    margin: 1vh 2vw 2vh 2vw;
 }
 
 input[type="text"],
 input[type="password"],
 input[type="email"]{
-    width: 80%;
+    width: 100%;
     max-width: 400px;
 }
 
-input{
+label{
+    width: 60%;
+    margin-left: 20%;
+    margin-right: 20%;
+    display: block;
+    text-align: left;
     margin-bottom: 10px;
 }
 
@@ -46,4 +53,10 @@ input{
     #logo {
         font-size: 30vw;
     }
+}
+
+#button_label{
+    text-align: center;
+    width: 100%;
+    margin: 1vh 0;
 }

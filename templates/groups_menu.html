@@ -1,0 +1,28 @@
+{% extends "main.html" %}
+
+{% block head %}
+    <title>Groups menu</title>
+{% endblock %}
+
+{% block body %}
+    <div class="site-3">
+        <h1>Groups</h1>
+        <div class="unit">
+            <div class="unit_header">New group</div>
+            <form method="POST" action="{{ url_for("add_group") }}">
+                <label>
+                    Name:
+                    <input type="text" name="new_group_name">
+                </label>
+            </form>
+        </div>
+        <div>
+            <div class="unit_header">All groups</div>
+            {% for group in groups %}
+                <div class="result" onclick="document.location='{{ url_for("one_group", group_id=group["id"]) }}'">
+                    <p>{{ group["name"] }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

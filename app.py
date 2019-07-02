@@ -156,7 +156,6 @@ def login():
                          "password": password},
              "object": {"type": "session", "user_id": user_id},
              "action": "add"})
-        print(add_session_request)
         if add_session_request["status"] == "handled":
             get_session_request = requester.make_request(
                 {"account": {"type": "account",
@@ -207,13 +206,13 @@ def lists_menu():
             one_list["author"] = session["user"]["nick"]
         upcomming_lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
         if upcomming_lists:
-            units.append({"name": "upcoming", "lists": upcomming_lists})
+            units.append({"name": "latest", "lists": upcomming_lists})
 
         followeds_lists = get_followeds_lists(user_id, user_key)
         add_author_to_list(user_id, user_key, followeds_lists)
         followeds_lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
         if followeds_lists:
-            units.append({"name": "followed`s", "lists": followeds_lists})
+            units.append({"name": "followed", "lists": followeds_lists})
 
         return render_template("lists_menu.html", units=units)
     else:
@@ -221,6 +220,8 @@ def lists_menu():
 
 
 def get_followeds_lists(user_id, user_key):
+    lists = []
+
     result = requester.make_request(
         {"account": {"type": "session",
                      "user_id": user_id, "key": user_key},
@@ -229,7 +230,6 @@ def get_followeds_lists(user_id, user_key):
                     "following": "follow_account"},
          "action": "get"})
     followeds_ids = [x["followed"] for x in result["objects"]]
-    lists = []
     for one_id in followeds_ids:
         db_request = requester.make_request(
             {"account": {"type": "session",
@@ -238,29 +238,57 @@ def get_followeds_lists(user_id, user_key):
                         "user_id": one_id},
              "action": "get"})
         lists.extend(db_request["objects"])
+
+    result = requester.make_request(
+        {"account": {"type": "session",
+                     "user_id": user_id, "key": user_key},
+         "object": {"type": "follow",
+                    "follower": user_id,
+                    "following": "follow_group"},
+         "action": "get"})
+    followeds_ids = [x["followed"] for x in result["objects"]]
+    for one_id in followeds_ids:
+        db_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "list",
+                        "group_id": one_id},
+             "action": "get"})
+        lists.extend(db_request["objects"])
     return lists
 
 
 def add_author_to_list(user_id, user_key, lists):
     for list in lists:
-        get_account_request = requester.make_request(
-            {"account": {"type": "session",
-                         "user_id": user_id, "key": user_key},
-             "object": {"type": "account", "id": list["user_id"]},
-             "action": "get"})
-        list["author"] = get_account_request["objects"][0]["nick"]
+        if "user_id" in list:
+            get_account_request = requester.make_request(
+                {"account": {"type": "session",
+                             "user_id": user_id, "key": user_key},
+                 "object": {"type": "account", "id": list["user_id"]},
+                 "action": "get"})
+            if get_account_request["objects"]:
+                if "user_id" in list:
+                    list["author"] = get_account_request["objects"][0]["nick"]
+                else:
+                    list["author"] = get_account_request["objects"][0]["id"]
+            else:
+                list["author"] = "deleted"
+        else:
+            list["author"] = "anonymous"
     return lists
 
 
 @app.route("/list/followed")
-def followers_lists():
+def followed_menu():
     keys = check_session()
     if keys:
         user_id, user_key = keys
+        units = []
         lists = get_followeds_lists(user_id, user_key)
         add_author_to_list(user_id, user_key, lists)
         lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
-        return render_template("lists_followeds.html", lists=lists)
+        units.append({"name": "lists", "lists": lists})
+        return render_template("followed_menu.html", units=units)
     else:
         return redirect(url_for("index"))
 
@@ -269,21 +297,42 @@ def followers_lists():
 def list_add():
     keys = check_session()
     if keys:
+        user_id, user_key = keys
         if request.method == "POST":
-            user_id, user_key = keys
+            requests_object = {"type": "list",
+                               "user_id": user_id,
+                               "name": request.form["name"],
+                               "content": request.form["content"]}
+            if request.form["visibility"] != "none":
+                requests_object["group_id"] = request.form["visibility"]
+
             db_request = requester.make_request(
                 {"account": {"type": "session",
                              "user_id": user_id, "key": user_key},
-                 "object": {"type": "list",
-                            "user_id": user_id,
-                            "name": request.form["name"],
-                            "content": request.form["content"]},
+                 "object": requests_object,
                  "action": "add"})
             if db_request["status"] == "handled":
                 return redirect(url_for("lists_menu"))
             else:
                 return render_template("lists_add.html", error=db_request["error"])
-        return render_template("lists_add.html")
+        get_group_follows_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "follow",
+                        "follower": user_id,
+                        "following": "follow_group"},
+             "action": "get"})
+        followed_groups_ids = [x["followed"] for x in get_group_follows_request["objects"]]
+        groups = []
+        for group_id in followed_groups_ids:
+            result = requester.make_request(
+                {"account": {"type": "session",
+                             "user_id": user_id, "key": user_key},
+                 "object": {"type": "group",
+                            "id": group_id},
+                 "action": "get"})
+            groups.extend(result["objects"])
+        return render_template("lists_add.html", groups=groups)
     else:
         return redirect(url_for("index"))
 
@@ -364,8 +413,8 @@ def search():
         return redirect(url_for("index"))
 
 
-@app.route('/follow/<id>')
-def follow(id):
+@app.route('/follow/<type>/<id>')
+def follow(type, id):
     keys = check_session()
     if keys:
         user_id, user_key = keys
@@ -376,13 +425,13 @@ def follow(id):
              "object": {"type": "follow",
                         "followed": int(id),
                         "follower": user_id,
-                        "following": "follow_account"},
+                        "following": "follow_" + type},
              "action": "add"})
         return response["status"]
 
 
-@app.route('/unfollow/<id>')
-def unfollow(id):
+@app.route('/unfollow/<type>/<id>')
+def unfollow(type, id):
     keys = check_session()
     if keys:
         user_id, user_key = keys
@@ -393,6 +442,78 @@ def unfollow(id):
              "object": {"type": "follow",
                         "followed": int(id),
                         "follower": user_id,
-                        "following": "follow_account"},
+                        "following": "follow_" + type},
              "action": "del"})
         return response["status"]
+
+
+@app.route("/group")
+def groups_menu():
+    keys = check_session()
+    if keys:
+        user_id, user_key = keys
+        result = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id,
+                         "key": user_key},
+             "object": {"type": "group"},
+             "action": "get"})
+        groups = result["objects"]
+        return render_template("groups_menu.html", groups=groups)
+    return redirect(url_for("index"))
+
+
+@app.route('/group/add', methods=["POST"])
+def add_group():
+    keys = check_session()
+    if keys:
+        user_id, user_key = keys
+        if request.method == "POST":
+            requester.make_request(
+                {"account": {"type": "session",
+                             "user_id": user_id,
+                             "key": user_key},
+                 "object": {"type": "group",
+                            "name": request.form["new_group_name"]},
+                 "action": "add"})
+    return redirect(url_for("groups_menu"))
+
+
+@app.route("/group/<group_id>")
+def one_group(group_id):
+    keys = check_session()
+    if keys:
+        user_id, user_key = keys
+        get_group_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "group",
+                        "id": int(group_id)},
+             "action": "get"})
+        group = get_group_request["objects"][0]
+        get_lists_request = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id, "key": user_key},
+             "object": {"type": "list",
+                        "group_id": group["id"]},
+             "action": "get"})
+        lists = get_lists_request["objects"]
+        add_author_to_list(user_id, user_key, lists)
+
+        follow_response = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id,
+                         "key": user_key},
+             "object": {"type": "follow",
+                        "followed": group_id,
+                        "follower": user_id,
+                        "following": "follow_group"},
+             "action": "get"})
+        if follow_response["objects"]:
+            group["followed"] = "true"
+        else:
+            group["followed"] = "false"
+
+        return render_template("one_group.html", group=group, lists=lists)
+    else:
+        return redirect(url_for("index"))

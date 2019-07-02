@@ -8,20 +8,31 @@
 {% block body %}
     <div class="site-6 centered">
         <form method="POST" class="centered" action="{{ url_for("list_add") }}">
-            <h1>List add</h1>
+            <h1>New List</h1>
             <label>
                 Name<br>
-                <input type="text" name="name">
-            </label><br>
+                <input type="text" required name="name">
+            </label>
             <label>
                 Content<br>
-                <textarea name="content" cols="40" rows="5"></textarea><br>
+                <textarea name="content" required cols="40" rows="5"></textarea>
+            </label>
+            <label>
+                Visibility
+                <select name="visibility">
+                    <option selected value="none">Public</option>
+                    {% for group in groups %}
+                        <option value="{{ group["id"] }}">{{ group["name"] }}</option>
+                    {% endfor %}
+                </select>
             </label>
             {% if error %}
                 <p>{{ error }}</p>
             {% endif %}
-            <input type="submit" value="Add">
-            <input type="button" id="back_btn" value="Back" onclick="document.location='{{ url_for("lists_menu") }}'"/>
+            <label>
+                <input type="submit" value="Add">
+                <input type="button" id="back_btn" value="Back" onclick="document.location='{{ url_for("lists_menu") }}'"/>
+            </label>
         </form>
     </div>
 {% endblock %}

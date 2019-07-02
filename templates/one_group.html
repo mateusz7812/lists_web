@@ -1,0 +1,58 @@
+{% extends "main.html" %}
+
+{% block head %}
+    <title>Groups menu</title>
+{% endblock %}
+
+{% block body %}
+    <div class="site-4">
+        <h1>{{ group["name"] }}</h1>
+        <input type="button" id="follow_btn" onclick="change_following()">
+        <div class="unit">
+            <div class="unit_header">Lists</div>
+            {% for list in lists %}
+                <div class="list-small" onclick="document.location='{{ url_for("one_list", list_id = list["id"]) }}'">
+                    <p>{{ list["author"] }} - {{ list["name"] }}</p>
+                    <p>{{ list["content"] }}</p>
+                    <p>{{ list["date"] }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        let followed = {{ group["followed"] }};
+        let follow_btn = document.getElementById("follow_btn");
+        change_btn_value();
+
+        function change_btn_value(){
+            if(followed){
+                follow_btn.setAttribute("value", "Unfollow")
+            }
+            else{
+                follow_btn.setAttribute("value", "Follow")
+            }
+        }
+
+        function change_following(){
+            const xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    document.location.reload();
+                }
+            };
+
+            if(followed) {
+                xhttp.open("GET", "{{ url_for("unfollow", type="group", id=group["id"]) }}", true);
+                followed = false;
+            }
+            else{
+                xhttp.open("GET", "{{ url_for("follow", type="group", id=group["id"]) }}", true);
+                followed = true;
+            }
+
+            xhttp.send();
+            change_btn_value();
+        }
+    </script>
+{% endblock %}

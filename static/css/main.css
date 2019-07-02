@@ -38,7 +38,7 @@ html{
 
 .site-4{
     width:50%;
-    margin: 0 30% 0 20%;
+    margin: 0 20% 0 30%;
 }
 
 .site-5{
@@ -62,7 +62,7 @@ body{
 
 [class*="site"]{
     min-height: 100vh;
-    padding: 10vh 30px;
+    padding: 3vh 30px !important;
     background-color: var(--first-color);
     z-index: 1;
     box-sizing: border-box;
@@ -84,14 +84,16 @@ body{
 }
 
 .unit_header{
+    font-family: 'Molle', cursive;
     line-height: 30px;
-    text-align: center;
+    font-size: 2vh;
+    text-align: left;
+    padding: 3px 20px;
     color: var(--dark-font-color);
     font-weight: bold;
     width: 100%;
     height: 30px;
-    background-color: var(--fourth-color);
-    box-shadow: 0 -2px 3px var(--fifth-color);
+    box-shadow: 0 4px 0 -1px var(--fifth-color);
 }
 
 input{
@@ -100,7 +102,9 @@ input{
     color: var(--dark-font-color);
 }
 
-input[type="text"]{
+input[type="text"],
+input[type="password"],
+input[type="email"]{
     padding: 5px;
 
 }
@@ -146,4 +150,7 @@ textarea{
 
 h1{
     font-family: 'Molle', cursive;
+    width: 100%;
+    text-align: center;
+    font-size: 3vw;
 }

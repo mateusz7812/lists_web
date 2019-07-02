@@ -2,17 +2,14 @@
 {% if session["logged"] %}
     <div id="sidebar">
         <div id="menu">
-            <div id="logo">
-                L
-            </div>
+            <div id="logo">L</div>
             <form class="menu_div" method="GET" action="{{ url_for("search")}}">
                 <input type="search" id="search_bar" name="query" placeholder="search"/>
             </form>
             <div class="menu_div" id="add_list_div" onclick="document.location='{{ url_for("list_add") }}'">New</div>
             <div class="menu_div" id="lists_menu_div" onclick="document.location='{{ url_for("lists_menu") }}'">All</div>
-            <div class="menu_div" id="invites_div" onclick="document.location='#'">Invites</div>
-            <div class="menu_div" id="upcoming_div" onclick="document.location='#'">Upcoming</div>
-            <div class="menu_div" id="followed_div" onclick="document.location='{{ url_for("followers_lists") }}'">Followed`s</div>
+            <div class="menu_div" id="followed_div" onclick="document.location='{{ url_for("followed_menu") }}'">Followed</div>
+            <div class="menu_div" id="groups_div" onclick="document.location='{{ url_for("groups_menu") }}'">Groups</div>
             <div class="menu_div" id="user_div" onclick="document.location='{{ url_for("user_home") }}'">{{ session["user"]["nick"] }}</div>
             <div class="menu_div" id="log_out_div" onclick="document.location='{{ url_for("logout") }}'">Log out</div>
         </div>

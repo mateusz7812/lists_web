@@ -15,16 +15,16 @@
             <label>
                 Login<br>
                 <input type="text" name="login">
-            </label><br>
+            </label>
             <label>
                 Password<br>
                 <input type="password" name="password">
-            </label><br>
+            </label>
             {% if error %}
                 <p id="info">{{ error }}</p>
             {% endif %}
-            <input type="submit" value="Login"><br>
-            <label>
+            <label id="button_label"><input type="submit" value="Login"></label>
+            <label id="button_label">
                 Are you not registered?<br>
                 <input type="button" id="register" value="Register" onclick="document.location='{{ url_for("register") }}'">
             </label>
