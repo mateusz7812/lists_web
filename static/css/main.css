@@ -1,7 +1,7 @@
 html{
-    font-family: 'Cinzel Decorative', cursive;
+    font-family: 'Roboto', sans-serif;
     color: var(--dark-font-color);
-    background-color: var(--main-bg-color);
+    background-color: var(--second-color);
 
     -moz-user-select: none;
     user-select: none;
@@ -12,13 +12,13 @@ html{
 }
 
 :root {
-    --main-bg-color:                #EFEFEC;
-    --first-basic-color:            #fff;
-    --second-basic-color:           #7DAED4;
-    --first-details-color:          #022859;
-    --second-details-color:         black;
-    --light-font-color:             #F2F2F2;
-    --dark-font-color:              #365166;
+    --first-color:      #FFFFFF;
+    --second-color:     #EFEFEC;
+    --third-color:      #A3B2C2;
+    --fourth-color:     #415474;
+    --fifth-color:      #182E58;
+    --light-font-color: #F2F2F2;
+    --dark-font-color:  #365166;
 }
 
 .site-1{
@@ -63,7 +63,7 @@ body{
 [class*="site"]{
     min-height: 100vh;
     padding: 10vh 30px;
-    background-color: var(--first-basic-color);
+    background-color: var(--first-color);
     z-index: 1;
     box-sizing: border-box;
     transition: height 0.8s, width 0.8s, margin 1s, font-size 0.5s;
@@ -90,12 +90,45 @@ body{
     font-weight: bold;
     width: 100%;
     height: 30px;
-    background-color: var(--second-basic-color);
-    box-shadow: 0 -2px 3px var(--first-details-color);
+    background-color: var(--fourth-color);
+    box-shadow: 0 -2px 3px var(--fifth-color);
 }
 
 input{
     text-align: center;
+    font-family: 'Roboto', sans-serif;
+    color: var(--dark-font-color);
+}
+
+input[type="text"]{
+    padding: 5px;
+
+}
+
+input[type="submit"],
+input[type="button"],
+input[type="reset"]
+{
+    padding: 10px 15px;
+    font-size: 1vw;
+    color: var(--light-font-color);
+    border: none;
+    background-color: var(--fourth-color);
+    cursor: pointer;
+    box-shadow: 0 0 10px 0 var(--fifth-color) inset;
+    font-weight: bolder;
+}
+
+input[type="submit"]:hover,
+input[type="button"]:hover,
+input[type="reset"]:hover
+{
+    box-shadow: 0 0 10px 0 var(--third-color) inset;
+}
+
+textarea{
+    padding: 10px;
+    font-family: 'Roboto', sans-serif;
 }
 
 @media only screen and (max-width: 1000px) {
@@ -103,4 +136,14 @@ input{
         width:  100%;
         margin: 0;
     }
+
+    input[type="submit"],
+    input[type="button"],
+    input[type="reset"] {
+        font-size: 2vw;
+    }
+}
+
+h1{
+    font-family: 'Molle', cursive;
 }

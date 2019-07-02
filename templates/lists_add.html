@@ -6,8 +6,9 @@
 {% endblock %}
 
 {% block body %}
-    <div class="site-7 centered">
-        <form method="POST" action="{{ url_for("list_add") }}">
+    <div class="site-6 centered">
+        <form method="POST" class="centered" action="{{ url_for("list_add") }}">
+            <h1>List add</h1>
             <label>
                 Name<br>
                 <input type="text" name="name">

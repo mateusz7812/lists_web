@@ -96,7 +96,8 @@ def user(id):
                          "user_id": user_id, "key": user_key},
              "object": {"type": "follow",
                         "followed": user["id"],
-                        "follower": user_id},
+                        "follower": user_id,
+                        "following": "follow_account"},
              "action": "get"})
 
         if db_request["objects"]:
@@ -155,7 +156,7 @@ def login():
                          "password": password},
              "object": {"type": "session", "user_id": user_id},
              "action": "add"})
-
+        print(add_session_request)
         if add_session_request["status"] == "handled":
             get_session_request = requester.make_request(
                 {"account": {"type": "account",
@@ -374,7 +375,8 @@ def follow(id):
                          "key": user_key},
              "object": {"type": "follow",
                         "followed": int(id),
-                        "follower": user_id},
+                        "follower": user_id,
+                        "following": "follow_account"},
              "action": "add"})
         return response["status"]
 
@@ -390,6 +392,7 @@ def unfollow(id):
                          "key": user_key},
              "object": {"type": "follow",
                         "followed": int(id),
-                        "follower": user_id},
+                        "follower": user_id,
+                        "following": "follow_account"},
              "action": "del"})
         return response["status"]

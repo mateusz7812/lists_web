@@ -3,7 +3,7 @@
     z-index: 15;
     width: 80%;
     height: 5vh;
-    background-color: var(--second-basic-color);
+    background-color: var(--fourth-color);
     justify-content: center;
     display: flex;
     align-items: center;
@@ -11,14 +11,12 @@
     overflow: hidden;
     cursor: pointer;
     transition: height 0.1s, width 0.1s, margin 0.1s, font-size 0.1s;
-}
-
-.menu_div{
-    color: var(--dark-font-color);
+    color: var(--light-font-color);
+    box-shadow: 0 0 10px 0 var(--fifth-color) inset;
 }
 
 .menu_div:hover{
-    box-shadow: 0 0 2px 1px var(--second-details-color);
+    box-shadow: 0 0 10px 0 var(--third-color) inset;
 }
 
 #logo{
@@ -33,7 +31,7 @@
     z-index: 10;
     margin-left: 10%;
     position: fixed;
-    background-color: var(--first-basic-color);
+    background-color: var(--first-color);
     height: 100vh;
     width: 10vw;
     transition: height 0.3s, width 0.3s, margin 0.3s;
