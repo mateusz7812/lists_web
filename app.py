@@ -132,16 +132,16 @@ def register():
 def login():
     if check_session():
         return redirect(url_for("index"))
-
     if request.method == "POST":
-        login = request.form["login"]
-        password = request.form["password"]
+        login = str(request.form["login"])
+        password = str(request.form["password"])
         get_user_request = requester.make_request(
             {"account": {"type": "anonymous"},
              "object": {"type": "account",
                         "login": login,
                         "password": password},
              "action": "get"})
+
         if "objects" not in get_user_request:
             return render_template("login.html", error='server error')
 
@@ -156,6 +156,7 @@ def login():
                          "password": password},
              "object": {"type": "session", "user_id": user_id},
              "action": "add"})
+
         if add_session_request["status"] == "handled":
             get_session_request = requester.make_request(
                 {"account": {"type": "account",
@@ -167,7 +168,7 @@ def login():
 
             response = make_response(redirect("/"))
             response.set_cookie('user_id', str(user_id))
-            response.set_cookie('user_key', user_key)
+            response.set_cookie('user_key', str(user_key))
             return response
         else:
             return render_template("login.html", error=add_session_request["error"])
@@ -298,7 +299,7 @@ def list_add():
     keys = check_session()
     if keys:
         user_id, user_key = keys
-        if request.method == "POST":
+        if request.method == "POST" or request.method == "post":
             requests_object = {"type": "list",
                                "user_id": user_id,
                                "name": request.form["name"],
@@ -364,17 +365,20 @@ def one_list(list_id):
 
 @app.route("/list/del", methods=["POST"])
 def list_del():
-    keys = check_session()
-    if keys and request.method == "POST":
-        user_id, user_key = keys
-        requester.make_request(
-            {"account": {"type": "session",
-                         "user_id": user_id, "key": user_key},
-             "object": {"type": "list",
-                        "id": int(request.form["id"]),
-                        "user_id": user_id,
-                        "name": request.form["name"]},
-             "action": "del"})
+    try:
+        keys = check_session()
+        if keys and (request.method == "POST" or request.method == "post"):
+            user_id, user_key = keys
+            requester.make_request(
+                {"account": {"type": "session",
+                             "user_id": user_id, "key": user_key},
+                 "object": {"type": "list",
+                            "id": int(request.form["id"]),
+                            "user_id": user_id,
+                            "name": request.form["name"]},
+                 "action": "del"})
+    except Exception as e:
+        return e
     return redirect(url_for("index"))
 
 
@@ -406,6 +410,18 @@ def search():
         for result in response["objects"]:
             result["type"] = "list"
             result["url"] = url_for("one_list", list_id=result["id"])
+            results.append(result)
+
+        response = requester.make_request(
+            {"account": {"type": "session",
+                         "user_id": user_id,
+                         "key": user_key},
+             "object": {"type": "group",
+                        "name": request.args.get("query")},
+             "action": "get"})
+        for result in response["objects"]:
+            result["type"] = "group"
+            result["url"] = url_for("one_group", group_id=result["id"])
             results.append(result)
 
         return render_template("search_results.html", results=results, query=request.args.get('query'))

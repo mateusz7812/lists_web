@@ -1,807 +1,289 @@
-import time
-from unittest import TestCase
-from unittest.mock import patch, Mock
-
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-
-import Main
-import app
-from requester import Requester
-
-requester = Requester()
+from unittest.mock import MagicMock
+from flask import Response
+from flask_testing import TestCase
+import app as ap
 
 
 class LoginTest(TestCase):
-    def setUpClass():
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "admin",
-                        "login": "admin",
-                        "password": "admin",
-                        "account_type": "admin"},
-             "action": "add"})
 
-    def setUp(self):
-        Main.run()
-        self.browser = webdriver.Firefox()
-        self.browser.implicitly_wait(3)
+    def create_app(self):
+        app = ap.app
+        app.config['TESTING'] = True
+        app.secret_key = 'super secret key'
+        app.config['SESSION_TYPE'] = 'filesystem'
+        return app
 
-    def tearDown(self):
-        Main.terminate()
-        self.browser.quit()
+    def test_index_redirecting_login_logout(self):
+        user = {"id": 1, "nick": "test", "login": "test", "password": "test"}
+        user_key = "abc"
 
-    def test_basic_login_old(self):
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "test"},
-             "action": "del"})
+        def make_request_mock(request):
+            if request["object"]["type"] == "account":
+                return {"objects": [user]}
+            elif request["object"]["type"] == "session":
+                return {"status": "handled", "objects": [{"key": user_key}]}
+            return {"status": "handled", "objects": []}
 
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "test",
-                        "login": "test",
-                        "password": "test"},
-             "action": "add"})
+        ap.requester.make_request = make_request_mock
 
-        response = requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "test",
-                        "login": "test",
-                        "password": "test"},
-             "action": "get"})
+        client = self.app.test_client()
 
-        user_id = response["objects"][0]["id"]
+        data: Response = client.get("/")
+        self.assertRedirects(data, '/user/login')
 
-        requester.make_request(
-            {"account": {"type": "account",
-                         "nick": "test",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "session",
-                        "user_id": user_id},
-             "action": "del"})
+        client.post("/user/login", data=dict(
+            login='test',
+            password='test'
+        ), follow_redirects=True)
 
-        self.browser.get("http://localhost/user/login")
+        cookies = {}
+        for cookie in list(client.cookie_jar):
+            cookies[cookie.name] = cookie.value
 
-        login_input_box = self.browser.find_element_by_name('login')
-        password_input_box = self.browser.find_element_by_name('password')
+        self.assertEqual('1', cookies["user_id"])
+        self.assertEqual('abc', cookies["user_key"])
 
-        login_input_box.send_keys('test')
-        password_input_box.send_keys('test')
-        password_input_box.send_keys(Keys.ENTER)
-
-        time.sleep(2)
-
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "session",
-                        "user_id": user_id},
-             "action": "get"})
-
-        user_key = response["objects"][0]["key"]
-
-        time.sleep(1)
-
-        self.assertEqual(user_id, int(self.browser.get_cookie("user_id")["value"]))
-        self.assertEqual(user_key, self.browser.get_cookie("user_key")["value"])
-
-        self.browser.get("http://localhost/user/logout")
-
-        self.assertEqual(None, self.browser.get_cookie("user_id"))
-        self.assertEqual(None, self.browser.get_cookie("user_key"))
+        data = client.get("/user/logout")
+        self.assertRedirects(data, '/')
+        self.assertEqual(['user_id=', 'user_key='], [x.split(";")[0] for x in data.headers.get_all('Set-cookie')[:2]])
 
     def test_bad_login(self):
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "test"},
-             "action": "del"})
+        def make_request_mock(_):
+            return {"status": "handled", "objects": []}
 
-        self.browser.get("http://localhost/user/login")
+        ap.requester.make_request = make_request_mock
 
-        login_input_box = self.browser.find_element_by_name('login')
-        password_input_box = self.browser.find_element_by_name('password')
+        client = self.app.test_client()
 
-        login_input_box.send_keys('test')
-        password_input_box.send_keys('test')
-        password_input_box.send_keys(Keys.ENTER)
+        data: Response = client.get("/")
+        self.assertRedirects(data, '/user/login')
 
-        time.sleep(2)
+        data = client.post("/user/login", data=dict(
+            login='test',
+            password='test'
+        ), follow_redirects=True)
 
-        info_p = self.browser.find_element_by_id('info').text
-
-        self.assertEqual("account not found", info_p)
+        info_p = data.data.find(b"account not found")
+        self.assertNotEqual(-1, info_p)
 
     def test_list_adding(self):
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "test"},
-             "action": "del"})
+        user = {"id": 1, "nick": "test", "login": "test", "password": "test"}
+        user_key = "abc"
 
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "test",
-                        "login": "test",
-                        "password": "test"},
-             "action": "add"})
+        def make_request_mock(request):
+            if request["object"]["type"] == "account":
+                return {"objects": [user]}
+            elif request["object"]["type"] == "session":
+                return {"status": "handled", "objects": [{"key": user_key}]}
+            return {"status": "handled", "objects": []}
 
-        response = requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "test",
-                        "login": "test",
-                        "password": "test"},
-             "action": "get"})
+        ap.requester = MagicMock()
+        ap.requester.make_request.side_effect = make_request_mock
 
-        user_id = response["objects"][0]["id"]
+        client = self.app.test_client()
 
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "list",
-                        "user_id": user_id},
-             "action": "del"})
+        client.set_cookie("/", "user_id", str(user["id"]))
+        client.set_cookie("/", "user_key", user_key)
 
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "session",
-                        "user_id": user_id},
-             "action": "add"})
+        data = client.post("http://localhost/list/add", data=dict(
+            name='test',
+            content='test',
+            visibility='none'
+        ))
 
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "session",
-                        "user_id": user_id},
-             "action": "get"})
+        self.assertRedirects(data, '/list')
 
-        user_key = response["objects"][0]["key"]
-
-        self.browser.get("http://localhost")
-
-        self.browser.add_cookie({"name": "user_id", "value": str(user_id)})
-        self.browser.add_cookie({"name": 'user_key', "value": user_key})
-
-        self.browser.get("http://localhost/list/add")
-
-        name_input_box = self.browser.find_element_by_name('name')
-        content_input_box = self.browser.find_element_by_name('content')
-
-        name_input_box.send_keys('test')
-        content_input_box.send_keys('test')
-        name_input_box.send_keys(Keys.ENTER)
-
-        time.sleep(2)
-
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "list",
-                        "user_id": user_id},
-             "action": "get"})
-
-        self.assertEqual("test", response["objects"][0]["name"])
-        self.assertEqual("test", response["objects"][0]["content"])
+        db_req_object = list(ap.requester.make_request.call_args)[0][0]["object"]
+        self.assertEqual('list', db_req_object["type"])
+        self.assertEqual(user["id"], db_req_object["user_id"])
+        self.assertEqual('test', db_req_object["name"])
+        self.assertEqual('test', db_req_object["content"])
+        self.assertEqual('add', list(ap.requester.make_request.call_args)[0][0]["action"])
 
     def test_list_id_page(self):
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "test"},
-             "action": "del"})
+        user = {"id": 1, "nick": "test", "login": "test", "password": "test"}
+        user_key = "abc"
+        a_list = {"id": 2, "user_id": 1, "name": "test", "content": "test", "date": "date"}
 
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "test",
-                        "login": "test",
-                        "password": "test"},
-             "action": "add"})
+        def make_request_mock(request):
+            if request["object"]["type"] == "account":
+                return {"objects": [user]}
+            elif request["object"]["type"] == "session":
+                return {"status": "handled", "objects": [{"key": user_key}]}
+            elif request["object"]["type"] == "list":
+                return {"status": "handled", "objects": [a_list]}
+            return {"status": "handled", "objects": []}
 
-        response = requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "test",
-                        "login": "test",
-                        "password": "test"},
-             "action": "get"})
+        ap.requester = MagicMock()
+        ap.requester.make_request.side_effect = make_request_mock
 
-        user_id = response["objects"][0]["id"]
+        client = self.app.test_client()
 
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "list",
-                        "user_id": user_id},
-             "action": "del"})
+        client.set_cookie("/", "user_id", str(user["id"]))
+        client.set_cookie("/", "user_key", user_key)
 
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "session",
-                        "user_id": user_id},
-             "action": "add"})
+        response = client.get("http://localhost/list/" + str(a_list["id"]))
 
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "session",
-                        "user_id": user_id},
-             "action": "get"})
+        self.assertNotEqual(-1, response.data.find(b"test - test"))
 
-        user_key = response["objects"][0]["key"]
+        data = client.post("http://localhost/list/del", data=dict(
+            name='test',
+            id=2
+        ))
 
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "list",
-                        "user_id": user_id,
-                        "name": "test",
-                        "content": "test"},
-             "action": "add"})
+        self.assertRedirects(data, '/')
 
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "list",
-                        "user_id": user_id},
-             "action": "get"})
-
-        list_id = response["objects"][0]["id"]
-
-        self.browser.get("http://localhost")
-        self.browser.delete_all_cookies()
-
-        self.browser.add_cookie({"name": "user_id", "value": str(user_id)})
-        self.browser.add_cookie({"name": 'user_key', "value": user_key})
-
-        self.browser.get("http://localhost/list/" + str(list_id))
-
-        list_name_field = self.browser.find_element_by_id('list_name')
-        list_content_field = self.browser.find_element_by_id('list_content')
-
-        self.assertEqual("test - test", list_name_field.text)
-        self.assertEqual("test", list_content_field.text)
-        self.browser.find_element_by_id('del_form_shower').click()
-        list_name_field = self.browser.find_element_by_name('name')
-        list_name_field.send_keys("test")
-
-        button = self.browser.find_element_by_id('del_list_btn')
-        button.click()
-
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "list",
-                        "user_id": user_id},
-             "action": "get"})
-
-        time.sleep(2)
-
-        self.assertEqual(0, len(response["objects"]))
-
-    def test_log_out_btn(self):
-        self.browser.get("http://localhost")
-        self.browser.delete_all_cookies()
-
-        self.browser.get("http://localhost/user/login")
-
-        self.assertEqual(0, len(self.browser.find_elements_by_id('log_out_btn')))
-
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "other1"},
-             "action": "del"})
-
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "other1",
-                        "login": "other1",
-                        "password": "other1"},
-             "action": "add"})
-
-        response = requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "login": "other1",
-                        "password": "other1"},
-             "action": "get"})
-
-        user_id = response["objects"][0]["id"]
-
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "other1",
-                         "password": "other1"},
-             "object": {"type": "session",
-                        "user_id": user_id},
-             "action": "add"})
-
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "other1",
-                         "password": "other1"},
-             "object": {"type": "session",
-                        "user_id": user_id},
-             "action": "get"})
-
-        user_key = response["objects"][0]["key"]
-
-        self.browser.add_cookie({"name": "user_id", "value": str(user_id)})
-        self.browser.add_cookie({"name": 'user_key', "value": user_key})
-
-        self.browser.get("http://localhost/list")
-
-        self.assertEqual(1, len(self.browser.find_elements_by_id('log_out_div')))
+        db_req_object = list(ap.requester.make_request.call_args)[0][0]["object"]
+        self.assertEqual('list', db_req_object["type"])
+        self.assertEqual(2, db_req_object["id"])
+        self.assertEqual('test', db_req_object["name"])
+        self.assertEqual('del', list(ap.requester.make_request.call_args)[0][0]["action"])
 
     def test_search_results(self):
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "other1"},
-             "action": "del"})
+        user1 = {"id": 1, "nick": "other1", "login": "other1", "password": "other1"}
+        user2 = {"id": 2, "nick": "other2", "login": "other2", "password": "other2"}
+        user_key = "abc"
+        a_list = {"id": 2, "user_id": 1, "name": "test", "content": "test", "date": "date"}
+        group = {"id": 10, "name": "test"}
 
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "other1",
-                        "login": "other1",
-                        "password": "other1"},
-             "action": "add"})
+        def make_request_mock(request):
+            if request["object"]["type"] == "account":
+                if "id" in request["object"]:
+                    return {"objects": [user1]}
+                if "login" in request["object"]:
+                    if request["object"]["login"] == "other1":
+                        return {"objects": [user1]}
+                    elif request["object"]["login"] == "other2":
+                        return {"objects": [user2]}
+                if "nick" in request["object"]:
+                    if request["object"]["nick"] == "other1":
+                        return {"objects": [user1]}
+                    elif request["object"]["nick"] == "other2":
+                        return {"objects": [user2]}
+            elif request["object"]["type"] == "session":
+                return {"status": "handled", "objects": [{"key": user_key}]}
+            elif request["object"]["type"] == "list":
+                return {"status": "handled", "objects": [a_list]}
+            elif request["object"]["type"] == "group":
+                return {"status": "handled", "objects": [group]}
+            return {"status": "handled", "objects": []}
 
-        response = requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "login": "other1",
-                        "password": "other1"},
-             "action": "get"})
+        ap.requester = MagicMock()
+        ap.requester.make_request.side_effect = make_request_mock
 
-        other1_id = response["objects"][0]["id"]
+        client = self.app.test_client()
 
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "other2"},
-             "action": "del"})
+        client.set_cookie("/", "user_id", str(user1["id"]))
+        client.set_cookie("/", "user_key", user_key)
 
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "other2",
-                        "login": "other2",
-                        "password": "other2"},
-             "action": "add"})
+        response = client.get("http://localhost/search?query=other2")
 
-        response = requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "login": "other2",
-                        "password": "other2"},
-             "action": "get"})
+        self.assertNotEqual(-1, response.data.find(b"result"))
+        self.assertNotEqual(-1, response.data.find(bytes('/user/' + str(user2["id"]), "utf-8")))
 
-        other2_id = response["objects"][0]["id"]
+        client.get("http://localhost/search?query=other3")
 
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "list",
-                        "name": "other3"},
-             "action": "del"})
+        self.assertNotEqual(-1, response.data.find(b"result"))
+        self.assertNotEqual(-1, response.data.find(bytes('/list/' + str(a_list["id"]), "utf-8")))
 
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "other1",
-                         "password": "other1"},
-             "object": {"type": "list",
-                        "user_id": other1_id,
-                        "name": "other3",
-                        "content": "other3"},
-             "action": "add"})
+        requests = list(
+            map(lambda x: x["object"]["type"],
+                filter(lambda x: x["action"] == "get",
+                       map(lambda x: x[1][0],
+                           map(list,
+                               list(ap.requester.method_calls))))))
+        self.assertIn("group", requests)
 
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "other1",
-                         "password": "other1"},
-             "object": {"type": "list",
-                        "user_id": other1_id,
-                        "name": "other3",
-                        "content": "other3"},
-             "action": "get"})
+    def test_followed_lists(self):
+        user = {"id": 1, "nick": "test", "login": "test", "password": "test"}
+        user1 = {"id": 2, "nick": "other1", "login": "other1", "password": "other1"}
+        user2 = {"id": 3, "nick": "other2", "login": "other2", "password": "other2"}
+        user_key = "abc"
+        list1 = {"id": 4, "user_id": 2, "name": "other1_list", "content": "test", "date": "2010-2-2 02:02"}
+        list2 = {"id": 5, "user_id": 3, "name": "other2_list", "content": "test", "date": "2010-2-3 03:02"}
 
-        other3_id = response["objects"][0]["id"]
+        def make_request_mock(request):
+            if request["object"]["type"] == "account":
+                if "id" in request["object"]:
+                    if request["object"]["id"] == 2:
+                        return {"objects": [user1]}
+                    elif request["object"]["id"] == 3:
+                        return {"objects": [user2]}
+                    elif request["object"]["id"] == 1:
+                        return {"objects": [user]}
+                if "login" in request["object"]:
+                    if request["object"]["login"] == "other1":
+                        return {"objects": [user1]}
+                    elif request["object"]["login"] == "other2":
+                        return {"objects": [user2]}
+                    elif request["object"]["login"] == "test":
+                        return {"objects": [user]}
+                if "nick" in request["object"]:
+                    if request["object"]["nick"] == "other1":
+                        return {"objects": [user1]}
+                    elif request["object"]["nick"] == "other2":
+                        return {"objects": [user2]}
+                    elif request["object"]["nick"] == "test":
+                        return {"objects": [user]}
+            elif request["object"]["type"] == "session":
+                return {"status": "handled", "objects": [{"key": user_key}]}
+            elif request["object"]["type"] == "list":
+                if "user_id" in request["object"]:
+                    if request["object"]["user_id"] == user1["id"]:
+                        return {"status": "handled", "objects": [list1]}
+                    elif request["object"]["user_id"] == user2["id"]:
+                        return {"status": "handled", "objects": [list2]}
+            elif request["object"]["type"] == "follow":
+                return {"status": "handled", "objects": [{"followed": user1["id"]}, {"followed": user2["id"]}]}
+            return {"status": "handled", "objects": []}
 
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "other1",
-                         "password": "other1"},
-             "object": {"type": "session",
-                        "user_id": other1_id},
-             "action": "add"})
+        ap.requester = MagicMock()
+        ap.requester.make_request.side_effect = make_request_mock
 
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "other1",
-                         "password": "other1"},
-             "object": {"type": "session",
-                        "user_id": other1_id},
-             "action": "get"})
+        client = self.app.test_client()
 
-        user_key = response["objects"][0]["key"]
+        client.set_cookie("/", "user_id", str(user1["id"]))
+        client.set_cookie("/", "user_key", user_key)
 
-        self.browser.get("http://localhost")
-        self.browser.delete_all_cookies()
+        response = client.get("http://localhost/list/followed")
 
-        self.browser.add_cookie({"name": "user_id", "value": str(other1_id)})
-        self.browser.add_cookie({"name": 'user_key', "value": user_key})
-
-        self.browser.get("http://localhost/search?query=other2")
-
-        time.sleep(2)
-
-        results = self.browser.find_elements_by_class_name("result")
-        results[0].click()
-
-        current_url = self.browser.current_url
-        self.assertRegex(current_url, '/user/' + str(other2_id))
-
-        self.browser.get("http://localhost/search?query=other3")
-
-        time.sleep(2)
-
-        results = self.browser.find_elements_by_class_name("result")
-        results[0].click()
-
-        current_url = self.browser.current_url
-        self.assertRegex(current_url, '/list/' + str(other3_id))
-
-    def test_followeds_lists(self):
-        # del old accounts
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "test"},
-             "action": "del"})
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "other1"},
-             "action": "del"})
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "other2"},
-             "action": "del"})
-
-        # del old lists
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "list",
-                        "name": "other1_list"},
-             "action": "del"})
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "list",
-                        "name": "other2_list"},
-             "action": "del"})
-
-        # add accounts
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "other1",
-                        "login": "other1",
-                        "password": "other1"},
-             "action": "add"})
-
-        response = requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "login": "other1",
-                        "password": "other1"},
-             "action": "get"})
-
-        other1_id = response["objects"][0]["id"]
-
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "other2",
-                        "login": "other2",
-                        "password": "other2"},
-             "action": "add"})
-
-        response = requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "login": "other2",
-                        "password": "other2"},
-             "action": "get"})
-
-        other2_id = response["objects"][0]["id"]
-
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "test",
-                        "login": "test",
-                        "password": "test"},
-             "action": "add"})
-
-        response = requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "login": "test",
-                        "password": "test"},
-             "action": "get"})
-
-        test_id = response["objects"][0]["id"]
-
-        # add lists
-
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "other1",
-                         "password": "other1"},
-             "object": {"type": "list",
-                        "user_id": other1_id,
-                        "name": "other1_list",
-                        "content": "other_other_other_other_other_other_other"},
-             "action": "add"})
-
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "other2",
-                         "password": "other2"},
-             "object": {"type": "list",
-                        "user_id": other2_id,
-                        "name": "other2_list",
-                        "content": "other_other_other_other_other_other_other"},
-             "action": "add"})
-
-        # del old follows
-
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "follow",
-                        "follower": test_id,
-                        "following": "follow_account"},
-             "action": "del"})
-
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "follow",
-                        "followed": other1_id,
-                        "following": "follow_account"},
-             "action": "del"})
-
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "follow",
-                        "followed": other2_id,
-                        "following": "follow_account"},
-             "action": "del"})
-
-        # set following
-
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "follow",
-                        "followed": other1_id,
-                        "follower": test_id,
-                        "following": "follow_account"},
-             "action": "add"})
-
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "follow",
-                        "followed": other2_id,
-                        "follower": test_id,
-                        "following": "follow_account"},
-             "action": "add"})
-
-        # login test user
-
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "session",
-                        "user_id": test_id},
-             "action": "add"})
-
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test",
-                         "password": "test"},
-             "object": {"type": "session",
-                        "user_id": test_id},
-             "action": "get"})
-
-        test_key = response["objects"][0]["key"]
-
-        self.browser.get("http://localhost")
-        self.browser.delete_all_cookies()
-
-        self.browser.add_cookie({"name": "user_id", "value": str(test_id)})
-        self.browser.add_cookie({"name": 'user_key', "value": test_key})
-
-        # check results
-
-        self.browser.get("http://localhost/list/followed")
-
-        results = self.browser.find_elements_by_class_name("list-small")
-        self.assertEqual("other1 - other1_list", results[0].find_elements_by_tag_name("p")[0].text)
-        self.assertEqual("other2 - other2_list", results[1].find_elements_by_tag_name("p")[0].text)
+        self.assertEqual(2, response.data.count(b"list-small"))
+        self.assertNotEqual(-1, response.data.find(b"other1 - other1_list"))
+        self.assertNotEqual(-1, response.data.find(b"other2 - other2_list"))
 
     def test_group_add_list(self):
-        # del old account
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "account",
-                        "login": "test1"},
-             "action": "del"})
+        user = {"id": 1, "nick": "test", "login": "test", "password": "test"}
+        user_key = "abc"
+        group = {"id": 10, "name": "test"}
+        a_list = {"id": 2, "user_id": 1, "name": "test", "content": "test", "date": "2010-2-3 03:02"}
+        follow = []
 
-        # del old group
-        result = requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "group",
-                        "name": "test2"},
-             "action": "get"})
+        def make_request_mock(request):
+            if request["object"]["type"] == "account":
+                return {"objects": [user]}
+            elif request["object"]["type"] == "session":
+                return {"status": "handled", "objects": [{"key": user_key}]}
+            elif request["object"]["type"] == "list":
+                return {"status": "handled", "objects": [a_list]}
+            elif request["object"]["type"] == "follow" and \
+                    request["object"]["following"] == "follow_group":
+                return {"status": "handled", "objects": follow}
+            return {"status": "handled", "objects": []}
 
-        old_list_id = result["objects"][0]["id"]
+        ap.requester = MagicMock()
+        ap.requester.make_request.side_effect = make_request_mock
 
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "group",
-                        "name": "test2",
-                        "id": old_list_id},
-             "action": "del"})
+        client = self.app.test_client()
 
-        # del old list
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "list",
-                        "name": "test3"},
-             "action": "del"})
+        client.set_cookie("/", "user_id", str(user["id"]))
+        client.set_cookie("/", "user_key", user_key)
 
-        # add user
-        requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "nick": "test1",
-                        "login": "test1",
-                        "password": "test1"},
-             "action": "add"})
+        response = client.get("http://localhost/list/followed")
 
-        response = requester.make_request(
-            {"account": {"type": "anonymous"},
-             "object": {"type": "account",
-                        "login": "test1",
-                        "password": "test1"},
-             "action": "get"})
+        self.assertEqual(-1, response.data.find(b"list-small"))
 
-        user_id = response["objects"][0]["id"]
+        follow = [{"follower": user["id"], "followed": group["id"]}]
 
-        # add group
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test1",
-                         "password": "test1"},
-             "object": {"type": "group",
-                        "name": "test2"},
-             "action": "add"})
+        response = client.get("http://localhost/list/followed")
 
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test1",
-                         "password": "test1"},
-             "object": {"type": "group",
-                        "name": "test2"},
-             "action": "get"})
-
-        group_id = response["objects"][0]["id"]
-
-        # add list
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test1",
-                         "password": "test1"},
-             "object": {"type": "list",
-                        "user_id": user_id,
-                        "group_id": group_id,
-                        "name": "list",
-                        "content": "list_list_list_list_list_list_list_list_list_list"},
-             "action": "add"})
-
-        # del old follows
-
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "follow",
-                        "follower": user_id,
-                        "following": "follow_account"},
-             "action": "del"})
-
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "follow",
-                        "follower": user_id,
-                        "following": "follow_group"},
-             "action": "del"})
-
-        requester.make_request(
-            {"account": {"type": "admin", "login": "admin", "password": "admin"},
-             "object": {"type": "follow",
-                        "follower": user_id,
-                        "following": "follow_list"},
-             "action": "del"})
-
-        # login user
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test1",
-                         "password": "test1"},
-             "object": {"type": "session",
-                        "user_id": user_id},
-             "action": "add"})
-
-        response = requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test1",
-                         "password": "test1"},
-             "object": {"type": "session",
-                        "user_id": user_id},
-             "action": "get"})
-
-        user_key = response["objects"][0]["key"]
-
-        self.browser.get("http://localhost")
-        self.browser.delete_all_cookies()
-
-        self.browser.add_cookie({"name": "user_id", "value": str(user_id)})
-        self.browser.add_cookie({"name": 'user_key', "value": user_key})
-
-        # check results
-
-        self.browser.get("http://localhost/list/followed")
-
-        results = self.browser.find_elements_by_class_name("list-small")
-        self.assertEqual(0, len(results))
-
-        # follow group
-        requester.make_request(
-            {"account": {"type": "account",
-                         "login": "test1",
-                         "password": "test1"},
-             "object": {"type": "follow",
-                        "follower": user_id,
-                        "followed": group_id,
-                        "following": "follow_group"},
-             "action": "add"})
-
-        # check results
-        self.browser.refresh()
-
-        results = self.browser.find_elements_by_class_name("list-small")
-        self.assertEqual(1, len(results))
+        self.assertNotEqual(-1, response.data.find(b"list-small"))
