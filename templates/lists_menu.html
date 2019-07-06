@@ -10,7 +10,7 @@
         <h1>All Lists</h1>
         {% for unit in units %}
             <div class="unit">
-                <div class="unit_header">{{ unit["name"] }}</div>
+                <div class="unit_header" onclick="document.location='{{ unit["url"] }}'">{{ unit["name"] }}</div>
                 {% for list in unit["lists"] %}
                     <div class="list-small" onclick="document.location='{{ url_for("one_list", list_id = list["id"]) }}'">
                         <p>{{ list["author"] }} - {{ list["name"] }}</p>

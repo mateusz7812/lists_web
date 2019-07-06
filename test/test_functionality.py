@@ -339,9 +339,6 @@ class TestWeb(TestCase):
         group_div = self.browser.find_element_by_xpath("//*[contains(text(),'group_test')]")
         group_div.click()
 
-        follow_btn = self.browser.find_element_by_id("follow_btn")
-        follow_btn.click()
-
         time.sleep(2)
 
         response = requester.make_request(

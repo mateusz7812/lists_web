@@ -23,10 +23,13 @@
             {% endif %}
         </span></p>
         <hr/>
+        {% if session["user"]["id"] != user["id"] %}
         <input type="button" id="follow_btn" onclick="change_following()"/>
+        {% endif %}
         <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
     </div>
 
+    {% if session["user"]["id"] != user["id"] %}
     <script>
         let followed = {{ user["followed"] }};
         let follow_btn = document.getElementById("follow_btn");
@@ -50,11 +53,11 @@
             };
 
             if(followed) {
-                xhttp.open("GET", "{{ url_for("unfollow", type="account", id=user["id"]) }}", true);
+                xhttp.open("GET", "{{ url_for("unfollow", follow_type="account", followed_id=user["id"]) }}", true);
                 followed = false;
             }
             else{
-                xhttp.open("GET", "{{ url_for("follow", type="account", id=user["id"]) }}", true);
+                xhttp.open("GET", "{{ url_for("follow", follow_type="account", followed_id=user["id"]) }}", true);
                 followed = true;
             }
 
@@ -62,6 +65,7 @@
             change_btn_value();
         }
     </script>
+    {% endif %}
 
 {% endblock %}
 

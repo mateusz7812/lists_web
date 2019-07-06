@@ -1,0 +1,9 @@
+label{
+    display: inline-block;
+    line-height: 7vh;
+    margin: 0 2%;
+}
+
+form{
+    height: 7vh;
+}

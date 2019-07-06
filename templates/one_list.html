@@ -22,15 +22,55 @@
                     <input type="submit" id="del_list_btn" value="Delete list" />
                 </form>
             {% endif %}
+            {% if session["user"]["id"] != user["id"] %}
+            <input type="button" id="follow_btn" onclick="change_following()"/>
+            {% endif %}
             <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
         </div>
     </div>
+
+    {% if session["user"]["id"] != user["id"] %}
     <script>
         document.getElementById('del_form_shower').onclick = function () {
             document.getElementById('del_form_shower').style.display = 'none';
             document.getElementById('del_form').style.display = 'block';
         };
+
+        let followed = {{ list["followed"] }};
+        let follow_btn = document.getElementById("follow_btn");
+        change_btn_value();
+
+        function change_btn_value(){
+            if(followed){
+                follow_btn.setAttribute("value", "Unfollow")
+            }
+            else{
+                follow_btn.setAttribute("value", "Follow")
+            }
+        }
+
+        function change_following(){
+            const xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    document.location.reload();
+                }
+            };
+
+            if(followed) {
+                xhttp.open("GET", "{{ url_for("unfollow", follow_type="group", followed_id=list["id"]) }}", true);
+                followed = false;
+            }
+            else{
+                xhttp.open("GET", "{{ url_for("follow", follow_type="group", followed_id=list["id"]) }}", true);
+                followed = true;
+            }
+
+            xhttp.send();
+            change_btn_value();
+        }
     </script>
+    {% endif %}
 {% endblock %}
 
 

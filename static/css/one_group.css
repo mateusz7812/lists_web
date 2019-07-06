@@ -1,0 +1,10 @@
+#follow_btn{
+    margin-left: 90%;
+    transform: translate(-50%, 0);
+}
+
+#back_btn{
+    margin-top: 7vh;
+    margin-left: 50%;
+    transform: translate(-50%, 0);
+}

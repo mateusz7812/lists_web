@@ -228,13 +228,18 @@ class LoginTest(TestCase):
             elif request["object"]["type"] == "session":
                 return {"status": "handled", "objects": [{"key": user_key}]}
             elif request["object"]["type"] == "list":
+                if "id" in request["object"]:
+                    if request["object"]["id"] == list1["id"]:
+                        return {"status": "handled", "objects": [list1]}
+                    if request["object"]["id"] == list2["id"]:
+                        return {"status": "handled", "objects": [list2]}
                 if "user_id" in request["object"]:
                     if request["object"]["user_id"] == user1["id"]:
                         return {"status": "handled", "objects": [list1]}
                     elif request["object"]["user_id"] == user2["id"]:
                         return {"status": "handled", "objects": [list2]}
             elif request["object"]["type"] == "follow":
-                return {"status": "handled", "objects": [{"followed": user1["id"]}, {"followed": user2["id"]}]}
+                return {"status": "handled", "objects": [{"followed": list1["id"]}, {"followed": list2["id"]}]}
             return {"status": "handled", "objects": []}
 
         ap.requester = MagicMock()
@@ -246,7 +251,7 @@ class LoginTest(TestCase):
         client.set_cookie("/", "user_key", user_key)
 
         response = client.get("http://localhost/list/followed")
-
+        print(response.data)
         self.assertEqual(2, response.data.count(b"list-small"))
         self.assertNotEqual(-1, response.data.find(b"other1 - other1_list"))
         self.assertNotEqual(-1, response.data.find(b"other2 - other2_list"))
@@ -255,7 +260,7 @@ class LoginTest(TestCase):
         user = {"id": 1, "nick": "test", "login": "test", "password": "test"}
         user_key = "abc"
         group = {"id": 10, "name": "test"}
-        a_list = {"id": 2, "user_id": 1, "name": "test", "content": "test", "date": "2010-2-3 03:02"}
+        a_list = {"id": 2, "user_id": 1, "group_id": 10, "name": "test", "content": "test", "date": "2010-2-3 03:02"}
         follow = []
 
         def make_request_mock(request):
@@ -264,10 +269,13 @@ class LoginTest(TestCase):
             elif request["object"]["type"] == "session":
                 return {"status": "handled", "objects": [{"key": user_key}]}
             elif request["object"]["type"] == "list":
-                return {"status": "handled", "objects": [a_list]}
+                if "group_id" in request["object"]:
+                    return {"status": "handled", "objects": [a_list]}
             elif request["object"]["type"] == "follow" and \
                     request["object"]["following"] == "follow_group":
                 return {"status": "handled", "objects": follow}
+            elif request["object"]["type"] == "group":
+                return {"status": "handled", "objects": [group]}
             return {"status": "handled", "objects": []}
 
         ap.requester = MagicMock()
@@ -278,12 +286,12 @@ class LoginTest(TestCase):
         client.set_cookie("/", "user_id", str(user["id"]))
         client.set_cookie("/", "user_key", user_key)
 
-        response = client.get("http://localhost/list/followed")
+        response = client.get("http://localhost/list")
 
         self.assertEqual(-1, response.data.find(b"list-small"))
 
         follow = [{"follower": user["id"], "followed": group["id"]}]
 
-        response = client.get("http://localhost/list/followed")
+        response = client.get("http://localhost/list")
 
         self.assertNotEqual(-1, response.data.find(b"list-small"))

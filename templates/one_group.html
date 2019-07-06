@@ -2,6 +2,7 @@
 
 {% block head %}
     <title>Groups menu</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/one_group.css"/>
 {% endblock %}
 
 {% block body %}
@@ -18,6 +19,7 @@
                 </div>
             {% endfor %}
         </div>
+        <input type="button" id="back_btn" value="Back" onclick="document.location='{{ url_for("lists_menu") }}'"/>
     </div>
 
     <script>
@@ -43,11 +45,11 @@
             };
 
             if(followed) {
-                xhttp.open("GET", "{{ url_for("unfollow", type="group", id=group["id"]) }}", true);
+                xhttp.open("GET", "{{ url_for("unfollow", follow_type="group", followed_id=group["id"]) }}", true);
                 followed = false;
             }
             else{
-                xhttp.open("GET", "{{ url_for("follow", type="group", id=group["id"]) }}", true);
+                xhttp.open("GET", "{{ url_for("follow", follow_type="group", followed_id=group["id"]) }}", true);
                 followed = true;
             }
 
