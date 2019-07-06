@@ -171,7 +171,7 @@ def lists_menu():
         user_lists = get_objects_by_field(user_id, user_key, "list", user_id, "user_id")
         if user_lists:
             for the_list in user_lists:
-                the_list["author"] = session["user"]["nick"]
+                the_list["author"] = session["user"]
             user_lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
             units.append({"name": session["user"]["nick"], "lists": user_lists, "url": url_for("user", the_id=user_id)})
 
@@ -185,8 +185,10 @@ def lists_menu():
         for the_follow in followed_accounts_lists:
             if the_follow["lists"]:
                 account = get_objects_by_field(user_id, user_key, "account", the_follow["account_id"])[0]
+                print(account)
                 if account:
                     lists = the_follow["lists"]
+                    add_author_to_list(user_id, user_key, lists)
                     lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
                     account_name = account["nick"] + "`s"
                     units.append({"name": account_name, "lists": lists, "url": url_for("user", the_id=account["id"])})
@@ -197,6 +199,7 @@ def lists_menu():
                 group = get_objects_by_field(user_id, user_key, "group", the_follow["group_id"])
                 if group:
                     lists = the_follow["lists"]
+                    add_author_to_list(user_id, user_key, lists)
                     lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
                     group_name = group[0]["name"]
                     units.append(
@@ -263,7 +266,7 @@ def get_followed_accounts_lists(user_id, user_key):
 
     followed_ids = [x["followed"] for x in result["objects"]]
     for one_id in followed_ids:
-        db_request = get_objects_by_field(user_id, user_key, "list", user_id, "user_id")
+        db_request = get_objects_by_field(user_id, user_key, "list", one_id, "user_id")
         lists.append({"account_id": one_id, "lists": db_request})
     return lists
 
@@ -273,9 +276,7 @@ def add_author_to_list(user_id, user_key, lists):
         if "user_id" in the_list:
             get_account_request = get_objects_by_field(user_id, user_key, "account", the_list["user_id"])
             if get_account_request:
-                the_list["author"] = get_account_request[0]["nick"]
-            else:
-                the_list["author"] = "deleted"
+                the_list["author"] = get_account_request[0]
         else:
             the_list["author"] = "anonymous"
     return lists
@@ -354,7 +355,7 @@ def one_list(list_id):
     if keys:
         user_id, user_key = keys
         the_list = get_objects_by_field(user_id, user_key, "list", int(list_id))[0]
-        the_user = get_objects_by_field(user_id, user_key, "account", the_list["user_id"], "id")[0]
+        the_user = get_objects_by_field(user_id, user_key, "account", the_list["user_id"])[0]
         the_list["author"] = the_user
 
         follow_response = requester.make_request(
@@ -370,6 +371,7 @@ def one_list(list_id):
             the_list["followed"] = "true"
         else:
             the_list["followed"] = "false"
+        print(the_list, the_user)
         return render_template("one_list.html", list=the_list)
     else:
         return redirect(url_for("index"))

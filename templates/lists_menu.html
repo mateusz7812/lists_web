@@ -13,7 +13,7 @@
                 <div class="unit_header" onclick="document.location='{{ unit["url"] }}'">{{ unit["name"] }}</div>
                 {% for list in unit["lists"] %}
                     <div class="list-small" onclick="document.location='{{ url_for("one_list", list_id = list["id"]) }}'">
-                        <p>{{ list["author"] }} - {{ list["name"] }}</p>
+                        <p>{{ list["name"] }}</p>
                         <p>{{ list["content"] }}</p>
                         <p>{{ list["date"] }}</p>
                     </div>

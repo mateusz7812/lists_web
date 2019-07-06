@@ -22,14 +22,14 @@
                     <input type="submit" id="del_list_btn" value="Delete list" />
                 </form>
             {% endif %}
-            {% if session["user"]["id"] != user["id"] %}
+            {% if session["user"]["id"] != list["user_id"] %}
             <input type="button" id="follow_btn" onclick="change_following()"/>
             {% endif %}
             <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
         </div>
     </div>
 
-    {% if session["user"]["id"] != user["id"] %}
+    {% if session["user"]["id"] != list["user_id"] %}
     <script>
         document.getElementById('del_form_shower').onclick = function () {
             document.getElementById('del_form_shower').style.display = 'none';
