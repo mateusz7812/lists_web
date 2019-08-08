@@ -1,21 +1,29 @@
 
 
-#left,
-#right{
-    width: 50%;
-    float: left;
-}
-
-#right>*{
-    width: 50%;
-    margin: 20px 25%;
-}
-
 #del_form{
     display: none;
     padding: 20px;
+    background: var(--first-color);
 }
 
 #del_list_btn{
     margin: 20px;
+}
+
+#list_buttons>*{
+    display: inline-block;
+}
+
+#list_buttons{
+    margin-top: 3vh;
+    width: 100%;
+    text-align: center;
+}
+
+
+@media only screen and (max-width: 1000px) {
+    .list-big{
+        width: 95%;
+    }
+
 }

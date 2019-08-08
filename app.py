@@ -139,7 +139,7 @@ def log_in():
                             "user_id": user_id},
                  "action": "get"})
 
-            user_key = get_session_request["objects"][0]["key"]
+            user_key = get_session_request["objects"][-1]["key"]
 
             response = make_response(redirect("/"))
             response.set_cookie('user_id', str(user_id))
@@ -168,46 +168,69 @@ def lists_menu():
         user_id, user_key = keys
         units = []
 
-        user_lists = get_objects_by_field(user_id, user_key, "list", user_id, "user_id")
-        if user_lists:
-            for the_list in user_lists:
-                the_list["author"] = session["user"]
-            user_lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
-            units.append({"name": session["user"]["nick"], "lists": user_lists, "url": url_for("user", the_id=user_id)})
+        units.extend(get_user_lists_units(user_id, user_key))
 
-        followed_lists = get_followed_lists(user_id, user_key)
-        if followed_lists:
-            add_author_to_list(user_id, user_key, followed_lists)
-            followed_lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
-            units.append({"name": "followed", "lists": followed_lists, "url": url_for("followed_lists")})
+        units.extend(get_followed_lists_units(user_id, user_key))
 
-        followed_accounts_lists = get_followed_accounts_lists(user_id, user_key)
-        for the_follow in followed_accounts_lists:
-            if the_follow["lists"]:
-                account = get_objects_by_field(user_id, user_key, "account", the_follow["account_id"])[0]
-                print(account)
-                if account:
-                    lists = the_follow["lists"]
-                    add_author_to_list(user_id, user_key, lists)
-                    lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
-                    account_name = account["nick"] + "`s"
-                    units.append({"name": account_name, "lists": lists, "url": url_for("user", the_id=account["id"])})
+        units.extend(get_followed_accounts_lists_units(user_id, user_key))
 
-        followed_groups_lists = get_followed_groups_list(user_id, user_key)
-        for the_follow in followed_groups_lists:
-            if the_follow["lists"]:
-                group = get_objects_by_field(user_id, user_key, "group", the_follow["group_id"])
-                if group:
-                    lists = the_follow["lists"]
-                    add_author_to_list(user_id, user_key, lists)
-                    lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
-                    group_name = group[0]["name"]
-                    units.append(
-                        {"name": group_name, "lists": lists, "url": url_for("one_group", group_id=group[0]["id"])})
+        units.extend(get_followed_groups_lists_units(user_id, user_key))
 
         return render_template("lists_menu.html", units=units)
     else:
         return redirect(url_for("index"))
+
+
+def get_followed_groups_lists_units(user_id, user_key):
+    units = []
+    followed_groups_lists = get_followed_groups_list(user_id, user_key)
+    for the_follow in followed_groups_lists:
+        if the_follow["lists"]:
+            group = get_objects_by_field(user_id, user_key, "group", the_follow["group_id"])
+            if group:
+                lists = the_follow["lists"]
+                add_author_to_list(user_id, user_key, lists)
+                lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
+                group_name = group[0]["name"]
+                units.append(
+                    {"name": group_name, "lists": lists, "url": url_for("one_group", group_id=group[0]["id"])})
+    return units
+
+
+def get_followed_accounts_lists_units(user_id, user_key):
+    units = []
+    followed_accounts_lists = get_followed_accounts_lists(user_id, user_key)
+    for the_follow in followed_accounts_lists:
+        if the_follow["lists"]:
+            account = get_objects_by_field(user_id, user_key, "account", the_follow["account_id"])[0]
+            if account:
+                lists = the_follow["lists"]
+                add_author_to_list(user_id, user_key, lists)
+                lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
+                account_name = account["nick"] + "`s"
+                units.append({"name": account_name, "lists": lists, "url": url_for("user", the_id=account["id"])})
+    return units
+
+
+def get_followed_lists_units(user_id, user_key):
+    units = []
+    followed_lists = get_followed_lists(user_id, user_key)
+    if followed_lists:
+        add_author_to_list(user_id, user_key, followed_lists)
+        followed_lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
+        units.append({"name": "followed", "lists": followed_lists, "url": url_for("followed_lists")})
+    return units
+
+
+def get_user_lists_units(user_id, user_key):
+    units = []
+    user_lists = get_objects_by_field(user_id, user_key, "list", user_id, "user_id")
+    if user_lists:
+        for the_list in user_lists:
+            the_list["author"] = session["user"]
+        user_lists.sort(key=lambda x: convert_str_to_date(x["date"]), reverse=True)
+        units.append({"name": session["user"]["nick"], "lists": user_lists, "url": url_for("user", the_id=user_id)})
+    return units
 
 
 def get_objects_by_field(user_id, user_key, object_type, object_field_value, object_field_name="id"):
@@ -320,6 +343,7 @@ def list_add():
                                "user_id": user_id,
                                "name": request.form["name"],
                                "content": request.form["content"]}
+            print(requests_object["content"])
             if request.form["visibility"] != "none":
                 requests_object["group_id"] = request.form["visibility"]
 
@@ -371,7 +395,6 @@ def one_list(list_id):
             the_list["followed"] = "true"
         else:
             the_list["followed"] = "false"
-        print(the_list, the_user)
         return render_template("one_list.html", list=the_list)
     else:
         return redirect(url_for("index"))

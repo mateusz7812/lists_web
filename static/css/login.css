@@ -20,10 +20,13 @@ form{
     height: 100vh;
 }
 
+input{
+    display: inline-block;
+}
 
 input[type="button"],
 input[type="submit"]{
-    width: 40%;
+    width: 50%;
     max-width: 200px;
     margin: 1vh 2vw 2vh 2vw;
 }
@@ -36,12 +39,10 @@ input[type="email"]{
 }
 
 label{
+    text-align: center;
     width: 60%;
-    margin-left: 20%;
-    margin-right: 20%;
-    display: block;
-    text-align: left;
-    margin-bottom: 10px;
+    display: inline-block;
+    margin: 1vh 20%;
 }
 
 #info{
@@ -50,13 +51,18 @@ label{
 
 
 @media only screen and (max-width: 1000px) {
+
+    label,
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="button"],
+    input[type="submit"]{
+        font-size: 15px;
+    }
+
     #logo {
         font-size: 30vw;
     }
-}
 
-#button_label{
-    text-align: center;
-    width: 100%;
-    margin: 1vh 0;
 }

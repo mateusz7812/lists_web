@@ -2,7 +2,6 @@
 .list-small{
     position: relative;
     display: inline-block;
-    font-family: 'Cinzel', cursive;
     margin: 20px;
     height: 270px;
     width: 220px;
@@ -16,15 +15,19 @@
 
 .list-big{
     font-size: larger;
+    display: inline-block;
     position: relative;
-    width:500px;
-    height:700px;
+    width:80%;
+    min-height:500px;
     background-color: var(--first-color);
-    left: 70%;
-    top: 50%;
-    transform: translate(-50%, 0);
+    text-align: justify;
     padding: 30px 50px;
     box-sizing: border-box;
+    box-shadow: 0 0 3px 1px var(--fifth-color);
+}
+
+#list_name{
+    margin-bottom: 0;
 }
 
 [class^=list] p{
@@ -41,6 +44,10 @@
 }
 
 [class^=list] p:last-child {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    right: 1vw;
     text-align: right;
 }
 
@@ -50,3 +57,5 @@
     word-break: break-word;
     overflow: hidden;
 }
+
+

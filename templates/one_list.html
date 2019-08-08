@@ -6,36 +6,45 @@
 {% endblock %}
 
 {% block body %}
-    <div class="centered">
-        <div>
+    <div class="site-5">
+        <div class="unit">
             <div class="list-big">
                 <h1 id="list_name">{{ list["author"]["nick"] }} - {{ list["name"] }}</h1>
                 <p id="list_content">{{ list["content"] }}</p>
                 <p id="list_date">{{ list["date"] }}</p>
             </div>
-            {% if list["author"]["nick"] == session["user"]["nick"] %}
-                <input type="button" id="del_form_shower" value="Delete">
-                <form id="del_form" style="border: 1px solid red" method="POST" action="{{ url_for("list_del") }}">
-                    <p style="color:red;">List delete</p>
-                    <label>List name:<input type="text" name="name"/></label>
-                    <input type="hidden" required name="id" value="{{ list["id"] }}" /><br>
-                    <input type="submit" id="del_list_btn" value="Delete list" />
-                </form>
-            {% endif %}
-            {% if session["user"]["id"] != list["user_id"] %}
-            <input type="button" id="follow_btn" onclick="change_following()"/>
-            {% endif %}
-            <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
+            <div id="list_buttons">
+                {% if list["author"]["id"] == session["user"]["id"] %}
+                    <input type="button" id="del_form_shower" value="Delete">
+                {% endif %}
+                {% if session["user"]["id"] != list["user_id"] %}
+                <input type="button" id="follow_btn" onclick="change_following()"/>
+                {% endif %}
+                <input type="button" id="back_btn" value="Back" onclick="document.location='{{ request.headers.get("Referer") }}'"/>
+            </div>
         </div>
     </div>
 
-    {% if session["user"]["id"] != list["user_id"] %}
-    <script>
+    <form id="del_form" class="centered" style="border: 1px solid red" method="POST" action="{{ url_for("list_del") }}">
+        <p style="color:red;">List delete</p>
+        <label>List name:<input type="text" name="name"/></label>
+        <input type="hidden" required name="id" value="{{ list["id"] }}" /><br>
+        <input type="submit" id="del_list_btn" value="Delete list" />
+        <input type="button" id="close_del_form_btn" value="Abort">
+    </form>
+<script>
+    {% if session["user"]["id"] == list["user_id"] %}
         document.getElementById('del_form_shower').onclick = function () {
-            document.getElementById('del_form_shower').style.display = 'none';
             document.getElementById('del_form').style.display = 'block';
         };
 
+        document.getElementById("close_del_form_btn").onclick = function () {
+            document.getElementById('del_form').style.display = 'none';
+
+        };
+    {% endif %}
+
+    {% if session["user"]["id"] != list["user_id"] %}
         let followed = {{ list["followed"] }};
         let follow_btn = document.getElementById("follow_btn");
         change_btn_value();
@@ -50,27 +59,27 @@
         }
 
         function change_following(){
-            const xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState === 4 && this.status === 200) {
-                    document.location.reload();
-                }
-            };
-
-            if(followed) {
-                xhttp.open("GET", "{{ url_for("unfollow", follow_type="group", followed_id=list["id"]) }}", true);
-                followed = false;
+        const xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                document.location.reload();
             }
-            else{
-                xhttp.open("GET", "{{ url_for("follow", follow_type="group", followed_id=list["id"]) }}", true);
-                followed = true;
-            }
+        };
 
-            xhttp.send();
-            change_btn_value();
+        if(followed) {
+            xhttp.open("GET", "{{ url_for("unfollow", follow_type="list", followed_id=list["id"]) }}", true);
+            followed = false;
         }
-    </script>
-    {% endif %}
-{% endblock %}
+        else{
+            xhttp.open("GET", "{{ url_for("follow", follow_type="list", followed_id=list["id"]) }}", true);
+            followed = true;
+        }
 
+        xhttp.send();
+        change_btn_value();
+    }
+    {% endif %}
+</script>
+
+{% endblock %}
 

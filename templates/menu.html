@@ -4,7 +4,7 @@
         <div id="menu">
             <div id="logo">L</div>
             <form class="menu_div" method="GET" action="{{ url_for("search")}}">
-                <input type="search" id="search_bar" name="query" placeholder="search"/>
+                <input type="search" id="search_bar" name="query" placeholder="Search"/>
             </form>
             <div class="menu_div" id="add_list_div" onclick="document.location='{{ url_for("list_add") }}'">New</div>
             <div class="menu_div" id="lists_menu_div" onclick="document.location='{{ url_for("lists_menu") }}'">All</div>
